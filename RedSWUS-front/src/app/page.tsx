@@ -8,22 +8,17 @@ const VideoUploadScreen: React.FC = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   useEffect(() => {
-    // SSE 연결 설정
     const eventSource = new EventSource("http://localhost:5000/log-stream");
 
-    // 서버로부터 메시지를 받을 때마다 로그에 추가
     eventSource.onmessage = (event) => {
-      console.log("Received event:", event.data);  // 로그 출력
       setLog((prevLogs) => [...prevLogs, event.data]);
     };
 
-    // 에러 처리
     eventSource.onerror = (error) => {
       console.error("EventSource failed: ", error);
-      eventSource.close(); // 에러 발생 시 연결 닫기
+      eventSource.close();
     };
 
-    // 컴포넌트가 언마운트될 때 SSE 연결 해제
     return () => {
       eventSource.close();
     };
@@ -41,7 +36,6 @@ const VideoUploadScreen: React.FC = () => {
       setIsProcessing(true);
       setLog((prevLog) => [...prevLog, "Processing started..."]);
 
-      // Flask 서버로 파일을 전송
       const formData = new FormData();
       formData.append("file", selectedFile);
 
@@ -72,128 +66,104 @@ const VideoUploadScreen: React.FC = () => {
 
   return (
     <MainContainer>
-      <Header>
-        <BackIcon>←</BackIcon>
-        <Title>Webcam Peeking Attack</Title>
-      </Header>
+      <NavBar>
+        <NavItem>RedSWUS</NavItem>
+      </NavBar>
 
-      <ContentAndLogContainer>
-        <Content>
-          <SectionTitle>Upload your file</SectionTitle>
-          <InfoBox>
-            <p>Select a video or image file to upload.</p>
-            <p>Supported formats: MP4, AVI, MOV, JPG, PNG.</p>
-            <p>Max file size: 50MB.</p>
-          </InfoBox>
+      <Content>
+        <HeroTitle>Enabling a Truly Connected World!</HeroTitle>
+        <Subtitle>
+          Connect via secure direct-to-satellite links. Send and receive data from anywhere in the world.
+        </Subtitle>
+        <InputBox>
+          <InputLabel>Select File</InputLabel>
+          <Input
+            type="file"
+            accept="video/*,image/png,image/jpeg"
+            onChange={handleFileChange}
+          />
+        </InputBox>
+        <UploadButton
+          onClick={handleRender}
+          disabled={isProcessing || !selectedFile}
+        >
+          {isProcessing ? "Processing..." : "Analyze"}
+        </UploadButton>
+      </Content>
 
-          <InputBox>
-            <InputLabel>Select File</InputLabel>
-            <Input
-              type="file"
-              accept="video/*,image/png,image/jpeg"
-              onChange={handleFileChange}
-            />
-          </InputBox>
-
-          <Footer>
-            <UploadButton
-              onClick={handleRender}
-              disabled={isProcessing || !selectedFile}
-            >
-              {isProcessing ? "Processing..." : "Render"}
-            </UploadButton>
-          </Footer>
-        </Content>
-
-        <LogContainer>
-          <LogTitle>Processing Log</LogTitle>
-          <LogContent>
-            {log.map((entry, index) => (
-              <LogEntry key={index}>{entry}</LogEntry>
-            ))}
-          </LogContent>
-        </LogContainer>
-      </ContentAndLogContainer>
+      <LogContainer>
+        <LogTitle>Processing Log</LogTitle>
+        <LogContent>
+          {log.map((entry, index) => (
+            <LogEntry key={index}>{entry}</LogEntry>
+          ))}
+        </LogContent>
+      </LogContainer>
     </MainContainer>
   );
 };
 
 export default VideoUploadScreen;
 
-
 // Styled components
 const MainContainer = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  background-color: #f8f8f8;
+  background: linear-gradient(180deg, #eaeaea, #d9d9d9);
   color: #333;
   min-height: 100vh;
-  padding-bottom: 80px;
+  padding: 40px 20px;
   font-family: 'Poppins', sans-serif;
+  position: relative;
+  overflow: hidden;
 `;
 
-const Header = styled.div`
+const NavBar = styled.nav`
   width: 100%;
-  padding: 16px;
-  background-color: #760c0c;
+  padding: 20px 40px;
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  justify-content: space-between;
-  font-size: 22px;
-  font-weight: bold;
-  color: #fff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  background: #f2f2f2;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 100;
 `;
 
-const BackIcon = styled.span`
-  font-size: 22px;
+const NavItem = styled.span`
+  margin-right: 20px;
+  font-size: 16px;
+  color: #333;
   cursor: pointer;
-`;
-
-const Title = styled.h1`
-  flex-grow: 1;
-  text-align: center;
-  margin: 0;
-  font-size: 22px;
-  font-weight: 500;
-`;
-
-const ContentAndLogContainer = styled.div`
-  display: flex;
-  width: 100%;
-  max-width: 1000px;
-  margin-top: 20px;
-  justify-content: space-between;
+  &:hover {
+    color: #e0988d;
+  }
 `;
 
 const Content = styled.div`
   width: 100%;
   max-width: 600px;
-  padding: 20px;
-  background-color: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  padding: 100px 40px;
+  background: #ffffff;
+  border-radius: 15px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  margin-top: 120px;
 `;
 
-const SectionTitle = styled.h2`
-  font-size: 18px;
-  margin-bottom: 16px;
-  color: #333;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-`;
-
-const InfoBox = styled.div`
-  padding: 16px;
-  background-color: #f8f8f8;
-  border-radius: 6px;
+const HeroTitle = styled.h2`
+  font-size: 32px;
   margin-bottom: 20px;
-  p {
-    margin: 6px 0;
-    font-size: 14px;
-    color: #555;
-  }
+  color: #333;
+`;
+
+const Subtitle = styled.p`
+  font-size: 18px;
+  margin-bottom: 40px;
+  color: #555;
 `;
 
 const InputBox = styled.div`
@@ -201,7 +171,7 @@ const InputBox = styled.div`
 `;
 
 const InputLabel = styled.label`
-  font-size: 14px;
+  font-size: 16px;
   margin-bottom: 8px;
   display: block;
   color: #333;
@@ -212,62 +182,54 @@ const Input = styled.input`
   font-size: 16px;
   padding: 12px;
   width: 100%;
-  background-color: #fff;
+  background: #ffffff;
   color: #333;
-  border-radius: 6px;
+  border-radius: 8px;
   outline: none;
   &:focus {
-    border-color: #760c0c;
+    border-color: #ff6347;
   }
-`;
-
-const Footer = styled.div`
-  display: flex;
-  justify-content: center;
 `;
 
 const UploadButton = styled.button`
-  padding: 12px 30px;
+  padding: 14px 40px;
   font-size: 16px;
-  background-color: #760c0c;
-  color: #fff;
+  background-color: #e0988d;
+  color: #ffffff;
   border: none;
-  border-radius: 6px;
+  border-radius: 25px;
   cursor: pointer;
   transition: background-color 0.3s ease;
   &:hover {
-    background-color: #5e0a0a;
+    background-color: #e5533d;
   }
   &:disabled {
-    background-color: #ccc;
+    background-color: #e0988d;
     cursor: not-allowed;
   }
 `;
 
 const LogContainer = styled.div`
-  width: 280px;
+  width: 100%;
+  max-width: 600px;
+  margin-top: 40px;
   padding: 20px;
-  background-color: #f4f4f4;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-  overflow-y: auto;
+  background: #ffffff;
+  border-radius: 15px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
 `;
 
 const LogTitle = styled.h3`
-  margin-top: 0;
-  font-size: 16px;
+  font-size: 20px;
   color: #333;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-bottom: 10px;
+  margin-bottom: 15px;
 `;
 
 const LogContent = styled.div`
-  font-size: 14px;
-  color: #555;
+  font-size: 16px;
+  color: #333;
 `;
 
 const LogEntry = styled.div`
   margin-bottom: 10px;
-  color: #760c0c;
 `;
