@@ -71,9 +71,9 @@ const VideoUploadScreen: React.FC = () => {
       </NavBar>
 
       <Content>
-        <HeroTitle>Enabling a Truly Connected World!</HeroTitle>
+        <HeroTitle>RedSWUS ORT</HeroTitle>
         <Subtitle>
-          Connect via secure direct-to-satellite links. Send and receive data from anywhere in the world.
+          레드슈즈.. 설명 쓰는 곳
         </Subtitle>
         <InputBox>
           <InputLabel>Select File</InputLabel>
@@ -137,25 +137,33 @@ const NavItem = styled.span`
   margin-right: 20px;
   font-size: 16px;
   color: #333;
+  font-weight: bold;
   cursor: pointer;
   &:hover {
-    color: #e0988d;
+    color: #de4960;
   }
 `;
 
 const Content = styled.div`
   width: 100%;
-  max-width: 600px;
-  padding: 100px 40px;
+  max-width: 1000px;
+  padding: 5vw;
   background: #ffffff;
   border-radius: 15px;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
   text-align: center;
   margin-top: 120px;
+  transition: all 0.3s ease-in-out;
+  flex-grow: 1;
+
+  @media (min-width: 1200px) {
+    padding: 40px;
+  }
 `;
 
 const HeroTitle = styled.h2`
   font-size: 32px;
+  font-weight: bold;
   margin-bottom: 20px;
   color: #333;
 `;
@@ -193,30 +201,37 @@ const Input = styled.input`
 
 const UploadButton = styled.button`
   padding: 14px 40px;
-  font-size: 16px;
-  background-color: #e0988d;
+  font-size: 17px;
+  background-color: #e07b8b;
   color: #ffffff;
   border: none;
+  font-weight: bold;
   border-radius: 25px;
   cursor: pointer;
   transition: background-color 0.3s ease;
   &:hover {
-    background-color: #e5533d;
+    background-color: #de4960;
   }
   &:disabled {
-    background-color: #e0988d;
+    background-color: #e07b8b;
     cursor: not-allowed;
   }
 `;
 
 const LogContainer = styled.div`
   width: 100%;
-  max-width: 600px;
+  max-width: 1000px;
   margin-top: 40px;
-  padding: 20px;
+  padding: 5vw;
   background: #ffffff;
   border-radius: 15px;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease-in-out;
+  flex-grow: 1;
+
+  @media (min-width: 1200px) {
+    padding: 40px;
+  }
 `;
 
 const LogTitle = styled.h3`
