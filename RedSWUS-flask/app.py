@@ -23,17 +23,17 @@ from models import DetectionResult
 with app.app_context():
     db.create_all()
 
-# YOLOv9 모델 경로 설정
-yolov9_local_path = os.path.abspath('./yolov9')
-custom_weights = './pt/best.pt'
+# # YOLOv9 모델 경로 설정
+# yolov9_local_path = os.path.abspath('./yolov9')
+# custom_weights = './pt/best.pt'
 
-# YOLOv9 모델 로드
-try:
-    model_yolo = torch.hub.load(yolov9_local_path, 'custom', path=custom_weights, source='local')
-    print("YOLOv9 모델이 성공적으로 로드되었습니다.")
-except Exception as e:
-    print(f"YOLOv9 모델 로드 중 오류 발생: {e}")
-    exit(1)
+# # YOLOv9 모델 로드
+# try:
+#     model_yolo = torch.hub.load(yolov9_local_path, 'custom', path=custom_weights, source='local')
+#     print("YOLOv9 모델이 성공적으로 로드되었습니다.")
+# except Exception as e:
+#     print(f"YOLOv9 모델 로드 중 오류 발생: {e}")
+#     exit(1)
 
 @app.route('/')
 def index():
