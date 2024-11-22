@@ -144,11 +144,20 @@ dist
 # End of https://www.toptal.com/developers/gitignore/api/node
 
 # Python 가상환경 무시
-redswusFlask/Lib/
-redswusFlask/Scripts/
-redswusFlask/Include/
-__pycache__/
+# Ignore Python virtual environment files
+RedSWUS-flask/redswusFlask/Include/
+RedSWUS-flask/redswusFlask/Scripts/
+RedSWUS-flask/redswusFlask/Lib/
+RedSWUS-flask/redswusFlask/__pycache__/
+RedSWUS-flask/redswusFlask/pyvenv.cfg
 *.pyc
 *.pyd
 *.dll
 *.lib
+*.db
+
+# Ignore Python virtual environment
+RedSWUS-flask/redswusFlask/pyvenv.cfg
+RedSWUS-flask/redswusFlask/share/
+
+
