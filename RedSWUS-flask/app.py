@@ -1,117 +1,80 @@
 from flask import Flask, request, jsonify
-from flask_cors import CORS
-from flask_sqlalchemy import SQLAlchemy
-import os
+from PIL import Image
 import torch
-import cv2
+from torchvision import transforms as T
+import io
 
-# Flask 앱 초기화
+# Flask 애플리케이션 생성
 app = Flask(__name__)
-CORS(app)
 
-# 데이터베이스 설정
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///detections.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+# parseq 모델 전용 클래스
+class ParseqApp:
+    def __init__(self):
+        # 모델 캐시 초기화
+        self._model = None
+        # 입력 이미지를 전처리하는 파이프라인 정의
+        self._preprocess = T.Compose([
+            T.Resize((32, 128), T.InterpolationMode.BICUBIC),
+            T.ToTensor(),
+            T.Normalize(0.5, 0.5)
+        ])
 
-# 데이터베이스 초기화
-db = SQLAlchemy(app)
+    def _load_model(self):
+        # parseq 모델 로드 (한 번만 실행)
+        if self._model is None:
+            self._model = torch.hub.load('baudm/parseq', 'parseq', pretrained=True, trust_repo=True).eval()
+        return self._model
 
-# 데이터베이스 모델 불러오기
-from models import DetectionResult
+    @torch.inference_mode()
+    def predict(self, image: Image.Image):
+        # parseq 모델 가져오기
+        model = self._load_model()
+        # 이미지 전처리
+        image = self._preprocess(image.convert('RGB')).unsqueeze(0)
+        # 모델 추론 수행
+        pred = model(image).softmax(-1)
+        # 결과 디코딩
+        label, _ = model.tokenizer.decode(pred)
+        raw_label, raw_confidence = model.tokenizer.decode(pred, raw=True)
+        # 결과 포맷팅
+        max_len = len(label[0]) + 1
+        conf = list(map('{:0.1f}'.format, raw_confidence[0][:max_len].tolist()))
+        return {
+            "text": label[0],
+            "raw_text": raw_label[0][:max_len],
+            "confidence": conf
+        }
 
-# 데이터베이스 테이블 생성
-with app.app_context():
-    db.create_all()
+# ParseqApp 인스턴스 생성
+app_instance = ParseqApp()
 
-# # YOLOv9 모델 경로 설정
-# yolov9_local_path = os.path.abspath('./yolov9')
-# custom_weights = './pt/best.pt'
-
-# # YOLOv9 모델 로드
-# try:
-#     model_yolo = torch.hub.load(yolov9_local_path, 'custom', path=custom_weights, source='local')
-#     print("YOLOv9 모델이 성공적으로 로드되었습니다.")
-# except Exception as e:
-#     print(f"YOLOv9 모델 로드 중 오류 발생: {e}")
-#     exit(1)
-
+# 기본 페이지 엔드포인트 추가
 @app.route('/')
-def index():
-    return "Hello World!"
+def home():
+    return jsonify({
+        "status": "running",
+        "message": "Welcome to the Parseq OCR API! Use POST /predict to send an image for prediction."
+    })
 
-# 파일 업로드 처리
-@app.route('/upload_file/yolo', methods=['POST'])
-def upload_file_yolo():
-    if 'file' not in request.files:
-        return jsonify({"message": "No file part in the request"}), 400
+# Flask 엔드포인트 생성
+@app.route('/predict', methods=['POST'])
+def predict():
+    try:
+        # 요청에서 파일 추출
+        file = request.files.get('file')
+        if not file:
+            return jsonify({"status": "error", "message": "No file provided. Please upload an image file."}), 400
 
-    file = request.files['file']
-    if file.filename == '':
-        return jsonify({"message": "No file selected for uploading"}), 400
+        # 파일을 PIL 이미지로 변환
+        image = Image.open(io.BytesIO(file.read()))
 
-    # 파일 저장 경로 설정
-    file_path = os.path.join("./detect", file.filename)
-    file.save(file_path)
+        # ParseqApp 클래스의 predict 메서드 호출
+        result = app_instance.predict(image)
 
-    # 파일 처리
-    if file.filename.endswith(('.jpg', '.jpeg', '.png')):
-        # YOLOv9 모델 처리
-        img = cv2.imread(file_path)
-        if img is None:
-            return jsonify({"message": "Error: Could not read image."}), 500
+        return jsonify({"status": "success", "result": result})
+    except Exception as e:
+        return jsonify({"status": "error", "message": f"An error occurred: {str(e)}"}), 500
 
-        # YOLOv9 감지 수행
-        results = model_yolo(img)
-        results.render()
-
-        # 처리된 이미지 저장
-        result_image_path = os.path.join('./detect', f"output_{file.filename}")
-        cv2.imwrite(result_image_path, img)
-
-        # 데이터베이스에 저장
-        detection = DetectionResult(
-            file_name=file.filename,
-            output_image_path=result_image_path,
-            model_name="YOLOv9"
-        )
-        db.session.add(detection)
-        db.session.commit()
-
-        return jsonify({"message": "Image processed successfully", "output_image": result_image_path}), 200
-
-    else:
-        return jsonify({"message": "Unsupported file format. Only JPG, PNG are supported."}), 400
-
-# 다른 모델의 API 추가
-@app.route('/upload_file/another_model', methods=['POST'])
-def upload_file_another_model():
-    if 'file' not in request.files:
-        return jsonify({"message": "No file part in the request"}), 400
-
-    file = request.files['file']
-    if file.filename == '':
-        return jsonify({"message": "No file selected for uploading"}), 400
-
-    # 파일 저장 경로 설정
-    file_path = os.path.join("./detect", file.filename)
-    file.save(file_path)
-
-    # 다른 모델 처리 예시 (로직은 모델에 따라 변경)
-    processed_image_path = os.path.join('./detect', f"processed_{file.filename}")
-    # 예를 들어, 여기에서 다른 모델 처리 로직을 추가하세요
-    # processed_image = another_model.process(file_path)
-    # cv2.imwrite(processed_image_path, processed_image)
-
-    # 처리된 파일을 데이터베이스에 저장
-    detection = DetectionResult(
-        file_name=file.filename,
-        output_image_path=processed_image_path,
-        model_name="AnotherModel"
-    )
-    db.session.add(detection)
-    db.session.commit()
-
-    return jsonify({"message": "Image processed successfully by AnotherModel", "output_image": processed_image_path}), 200
-
-if __name__ == "__main__":
-    app.run(debug=True, host='0.0.0.0', port=5000)
+# 서버 실행
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000)
