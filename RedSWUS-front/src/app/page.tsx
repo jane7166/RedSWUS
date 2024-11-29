@@ -14,8 +14,8 @@ const VideoUploadScreen: React.FC = () => {
       setLog((prevLogs) => [...prevLogs, event.data]);
     };
 
-    eventSource.onerror = (error) => {
-      console.error("EventSource failed: ", error);
+    eventSource.onerror = () => {
+      console.error("EventSource failed.");
       eventSource.close();
     };
 
@@ -52,7 +52,7 @@ const VideoUploadScreen: React.FC = () => {
           "Processing completed.",
           `Result: ${result.message}`,
         ]);
-      } catch (error) {
+      } catch {
         setIsProcessing(false);
         setLog((prevLog) => [...prevLog, "Error processing the file."]);
       }
