@@ -67,13 +67,14 @@ const VideoUploadScreen: React.FC = () => {
   return (
     <MainContainer>
       <NavBar>
-        <NavItem>RedSWUS</NavItem>
+        <NavItem>RedSWUs</NavItem>
       </NavBar>
 
       <Content>
-        <HeroTitle>RedSWUS ORT</HeroTitle>
+        <HeroTitle>RedSWUs ORT</HeroTitle>
         <Subtitle>
-          레드슈즈.. 설명 쓰는 곳
+          화상 영상 데이터 속 안경에 반사된 문자를 인식하는 공격모델 ORT입니다.
+          YOLO-1차 전처리-TextfuseNet-2차 전처리-Parseq으로 이루어졌습니다.
         </Subtitle>
         <InputBox>
           <InputLabel>Select File</InputLabel>
