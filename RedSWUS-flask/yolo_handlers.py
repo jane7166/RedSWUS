@@ -7,14 +7,13 @@ from models import db, YoloResult
 # YOLO 핸들러 클래스
 class YOLOApp:
     def __init__(self):
-        self.yolov9_local_path = os.path.abspath('./yolov9')
-        self.custom_weights = './pt/best.pt'
+        self.custom_weights = 'WongKinYiu/yolov9:main'  # TorchHub에서 가져올 YOLOv9 경로
         self.model = self._load_model()
 
     def _load_model(self):
         # YOLOv9 모델 로드
         try:
-            model_yolo = torch.hub.load(self.yolov9_local_path, 'custom', path=self.custom_weights, source='local')
+            model_yolo = torch.hub.load('WongKinYiu/yolov9', 'custom', path=self.custom_weights)
             print("YOLOv9 모델이 성공적으로 로드되었습니다.")
             return model_yolo
         except Exception as e:
