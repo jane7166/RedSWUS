@@ -142,3 +142,25 @@ dist
 .svelte-kit
 
 # End of https://www.toptal.com/developers/gitignore/api/node
+<<<<<<< HEAD
+=======
+
+# Python 가상환경 무시
+# Ignore Python virtual environment files
+RedSWUS-flask/redswusFlask/Include/
+RedSWUS-flask/redswusFlask/Scripts/
+RedSWUS-flask/redswusFlask/Lib/
+RedSWUS-flask/redswusFlask/__pycache__/
+RedSWUS-flask/redswusFlask/pyvenv.cfg
+*.pyc
+*.pyd
+*.dll
+*.lib
+*.db
+
+# Ignore Python virtual environment
+RedSWUS-flask/redswusFlask/pyvenv.cfg
+RedSWUS-flask/redswusFlask/share/
+
+
+>>>>>>> 7ece1b75c42b53efd6bfbad15cd9a7caa2e3291f
