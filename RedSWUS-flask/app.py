@@ -1,79 +1,68 @@
-from flask import Flask, request, jsonify
-from PIL import Image
-import torch
-from torchvision import transforms as T
-import io
+from flask import Flask, jsonify, request
+from models import db
+from video_handlers import handle_upload_video
+from yolo_handlers import handle_yolo_predict
+from firstPrepro_handlers import handle_firstPrepro
+from std_handlers import handle_std_predict
+from secondPrepro_handlers import handle_secondPrepro
+from str_handlers import handle_str_predict
 
-# Flask 애플리케이션 생성
 app = Flask(__name__)
 
-# parseq 모델 전용 클래스
-class ParseqApp:
-    def __init__(self):
-        # 모델 캐시 초기화
-        self._model = None
-        # 입력 이미지를 전처리하는 파이프라인 정의
-        self._preprocess = T.Compose([
-            T.Resize((32, 128), T.InterpolationMode.BICUBIC),
-            T.ToTensor(),
-            T.Normalize(0.5, 0.5)
-        ])
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///video_analysis.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-    def _load_model(self):
-        # parseq 모델 로드 (한 번만 실행)
-        if self._model is None:
-            self._model = torch.hub.load('baudm/parseq', 'parseq', pretrained=True, trust_repo=True).eval()
-        return self._model
+db.init_app(app)
 
-    @torch.inference_mode()
-    def predict(self, image: Image.Image):
-        # parseq 모델 가져오기
-        model = self._load_model()
-        # 이미지 전처리
-        image = self._preprocess(image.convert('RGB')).unsqueeze(0)
-        # 모델 추론 수행
-        pred = model(image).softmax(-1)
-        # 결과 디코딩
-        label, _ = model.tokenizer.decode(pred)
-        raw_label, raw_confidence = model.tokenizer.decode(pred, raw=True)
-        # 결과 포맷팅
-        max_len = len(label[0]) + 1
-        conf = list(map('{:0.1f}'.format, raw_confidence[0][:max_len].tolist()))
-        return {
-            "text": label[0],
-            "raw_text": raw_label[0][:max_len],
-            "confidence": conf
-        }
-
-# ParseqApp 인스턴스 생성
-app_instance = ParseqApp()
-
-# 기본 페이지 엔드포인트 추가
-@app.route('/')
-def home():
-    return jsonify({
-        "status": "running",
-        "message": "Welcome to the Parseq OCR API! Use POST /predict to send an image for prediction."
-    })
-
-# Flask 엔드포인트 생성
-@app.route('/predict', methods=['POST'])
-def predict():
+@app.route('/full_pipeline', methods=['POST'])
+def full_pipeline():
     try:
-        # 요청에서 파일 추출
-        file = request.files.get('file')
-        if not file:
-            return jsonify({"status": "error", "message": "No file provided. Please upload an image file."}), 400
+        # Step 1: 비디오 업로드
+        upload_response = handle_upload_video()
+        if upload_response[1] != 200:
+            return upload_response
+        video_id = upload_response[0].get("video_id")
 
-        # 파일을 PIL 이미지로 변환
-        image = Image.open(io.BytesIO(file.read()))
+        # Step 2: YOLO 탐지 수행
+        yolo_response = handle_yolo_predict(video_id=video_id)
+        if yolo_response[1] != 200:
+            return yolo_response
+        yolo_result_code = yolo_response[0].get("yolo_result_code")
 
-        # ParseqApp 클래스의 predict 메서드 호출
-        result = app_instance.predict(image)
+        # Step 3: 1차 전처리 수행
+        first_prepro_response = handle_firstPrepro(yolo_result_code=yolo_result_code)
+        if first_prepro_response[1] != 200:
+            return first_prepro_response
+        first_result_code = first_prepro_response[0].get("first_result_code")
 
-        return jsonify({"status": "success", "result": result})
+        # Step 4: STD 수행
+        std_response = handle_std_predict(first_result_code=first_result_code)
+        if std_response[1] != 200:
+            return std_response
+        std_result_code = std_response[0].get("std_result_code")
+
+        # Step 5: 2차 전처리 수행
+        second_prepro_response = handle_secondPrepro(std_result_code=std_result_code)
+        if second_prepro_response[1] != 200:
+            return second_prepro_response
+        second_result_code = second_prepro_response[0].get("second_result_code")
+
+        # Step 6: STR 탐지 수행
+        str_response = handle_str_predict(second_result_code=second_result_code)
+        if str_response[1] != 200:
+            return str_response
+
+        return jsonify({
+            "status": "success",
+            "message": "Full pipeline completed successfully.",
+            "str_result": str_response[0]
+        }), 200
+
     except Exception as e:
-        return jsonify({"status": "error", "message": f"An error occurred: {str(e)}"}), 500
+        return jsonify({
+            "status": "error",
+            "message": f"An error occurred during full pipeline execution: {str(e)}"
+        }), 500
 
 # 서버 실행
 if __name__ == '__main__':
