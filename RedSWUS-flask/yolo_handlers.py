@@ -2,18 +2,18 @@ import os
 import torch
 import cv2
 from flask import request, jsonify
-from models import db, YoloResult
+from models import db, DetectionResult
 
 # YOLO 핸들러 클래스
 class YOLOApp:
     def __init__(self):
-        self.custom_weights = 'WongKinYiu/yolov9:main'  # TorchHub에서 가져올 YOLOv9 경로
+        self.custom_weights = './pt/best.pt'  # 로컬 YOLOv9 가중치 경로
         self.model = self._load_model()
 
     def _load_model(self):
         # YOLOv9 모델 로드
         try:
-            model_yolo = torch.hub.load('WongKinYiu/yolov9', 'custom', path=self.custom_weights)
+            model_yolo = torch.hub.load(os.path.abspath('./yolov9'), 'custom', path=self.custom_weights, source='local')
             print("YOLOv9 모델이 성공적으로 로드되었습니다.")
             return model_yolo
         except Exception as e:
@@ -59,7 +59,7 @@ def handle_yolo_predict():
             cv2.imwrite(result_image_path, processed_image)
 
             # 데이터베이스에 결과 저장
-            detection_result = YoloResult(
+            detection_result = DetectionResult(
                 file_name=file.filename,
                 output_image_path=result_image_path,
                 model_name="YOLOv9"
