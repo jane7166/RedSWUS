@@ -1,0 +1,8 @@
+pip install flask
+pip install python-opencv
+pip install torch torchvision torchaudio
+pip install setuptools wheel cython
+pip install 'git+https://github.com/facebookresearch/detectron2.git'
+
+#이후에도 import 오류 발생할 경우 app.py에 있는 라이브러리 다운로드 모두 받기
+#ex_tempfile, numpy.. 등등
