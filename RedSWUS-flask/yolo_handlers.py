@@ -12,7 +12,7 @@ class YOLOApp:
     def detect_video(self, video_path, output_path, stride=5, img_size=640, conf=0.5):
         # 비디오 파일 처리
         try:
-            os.system(f"python ./yolov9detect.py --weights {self.custom_weights} --vid-stride {stride} \
+            os.system(f"python ./yolov9/detect.py --weights {self.custom_weights} --vid-stride {stride} \
                         --img {img_size} --conf {conf} --exist-ok --source {video_path} --save-crop --project {output_path}")
             print(f"비디오 파일 {video_path} 처리가 완료되었습니다.")
         except Exception as e:
