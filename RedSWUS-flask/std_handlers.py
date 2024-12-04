@@ -37,7 +37,7 @@ class FirstPreprocessingResult(db.Model):
 cfg = get_cfg()
 cfg.merge_from_file("./config.yaml")  # YAML 파일 경로 설정
 cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.5  # 예측 점수 임계값 설정
-cfg.MODEL.WEIGHTS = "./model_0000599.pth"  # 모델 가중치 파일 경로 설정
+cfg.MODEL.WEIGHTS = "./pt/model_0000599.pth"  # 모델 가중치 파일 경로 설정
 cfg.MODEL.DEVICE = "cuda" if torch.cuda.is_available() else "cpu"  # GPU 사용 가능하면 GPU 사용
 
 predictor = DefaultPredictor(cfg)
