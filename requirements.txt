@@ -1,4 +1,5 @@
 flask
+<<<<<<< HEAD
 opencv-python
 torch
 torchvision
@@ -7,3 +8,16 @@ setuptools
 wheel
 cython
 git+https://github.com/facebookresearch/detectron2.git
+=======
+python-opencv
+torch 
+torchvision 
+torchaudio
+setuptools 
+wheel 
+cython
+'git+https://github.com/facebookresearch/detectron2.git'
+
+#이후에도 import 오류 발생할 경우 app.py에 있는 라이브러리 다운로드 모두 받기
+#ex_tempfile, numpy.. 등등
+>>>>>>> 8e9605882677adf63bfa2a495233cc00a6670f0b
