@@ -5,7 +5,6 @@ import numpy as np
 import glob
 import tempfile
 import time
-from flask import request, jsonify, send_file
 from models import db, FirstPreprocessingResult
 from detectron2.engine import DefaultPredictor
 from detectron2.config import get_cfg
