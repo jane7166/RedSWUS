@@ -2,6 +2,7 @@ import os
 import cv2
 import torch
 import numpy as np
+import tempfile
 import warnings
 warnings.filterwarnings("ignore", category=FutureWarning, module="torch")
 from models import db, FirstPreprocessingResult
@@ -37,18 +38,33 @@ class DetectronHandler:
             if img is None:
                 return {"error": "Failed to load the image for prediction."}, 400
 
+            # Detectron2 예측 실행
             outputs = self.predictor(img)
             instances = outputs["instances"].to("cpu")
             boxes = instances.pred_boxes.tensor.numpy()
             classes = instances.pred_classes.numpy()
             scores = instances.scores.numpy()
 
+            # 바운딩 박스대로 이미지 크롭
+            cropped_image_paths = []
+            for i, box in enumerate(boxes):
+                x1, y1, x2, y2 = map(int, box)
+                cropped_img = img[y1:y2, x1:x2]  # 바운딩 박스 영역으로 이미지 크롭
+                if cropped_img.size == 0:  # 크롭된 이미지가 비어있는 경우 스킵
+                    continue
+
+                # 임시 파일로 저장
+                temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=f'_cropped_{i}.jpg')
+                cv2.imwrite(temp_file.name, cropped_img)
+                cropped_image_paths.append(temp_file.name)
+
             std_result_code = hash(file_path)  # 임시로 결과 코드 생성
             return {
                 "std_result_code": std_result_code,
                 "boxes": boxes.tolist(),
                 "classes": classes.tolist(),
-                "scores": scores.tolist()
+                "scores": scores.tolist(),
+                "cropped_images": cropped_image_paths  # 크롭된 이미지 경로 리스트 추가
             }, 200
 
         except Exception as e:
