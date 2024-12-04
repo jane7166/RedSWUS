@@ -2,7 +2,8 @@ import os
 import cv2
 import torch
 import numpy as np
-import tempfile
+import warnings
+warnings.filterwarnings("ignore", category=FutureWarning, module="torch")
 from models import db, FirstPreprocessingResult
 from detectron2.engine import DefaultPredictor
 from detectron2.config import get_cfg
