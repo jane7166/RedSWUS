@@ -61,36 +61,59 @@ def get_first_preprocessing():
 @app.route('/detect_visual', methods=['POST'])
 def detect_objects_visual():
     if 'image' not in request.files:
-        return jsonify({"error": "No image provided"}), 400
+        return jsonify({"error": "이미지가 제공되지 않았습니다."}), 400
 
     try:
-        # 이미지 읽기
+        # 이미지를 읽어오기
         file = request.files['image']
         np_img = np.frombuffer(file.read(), np.uint8)
         img = cv2.imdecode(np_img, cv2.IMREAD_COLOR)
 
         if img is None:
-            return jsonify({"error": "Failed to load image"}), 400
+            return jsonify({"error": "이미지를 로드하지 못했습니다."}), 400
 
-        # Detectron2를 사용한 객체 탐지 수행
+        # Detectron2를 사용하여 객체 탐지 실행
         outputs = predictor(img)
         instances = outputs["instances"].to("cpu")
         boxes = instances.pred_boxes.tensor.numpy()
         classes = instances.pred_classes.numpy()
         scores = instances.scores.numpy()
 
+        # 시각화된 전체 이미지에 바운딩 박스와 레이블 그리기
         for box, cls, score in zip(boxes, classes, scores):
             x1, y1, x2, y2 = box
             cv2.rectangle(img, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0), 2)
             label = f"Class: {cls}, Score: {score:.2f}"
             cv2.putText(img, label, (int(x1), int(y1) - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
 
+        # 크롭된 객체 이미지 저장
+        cropped_image_paths = []
+        for i, box in enumerate(boxes):
+            x1, y1, x2, y2 = map(int, box)
+            # 크롭 영역에 마진 추가
+            margin = 10
+            x1 = max(0, x1 - margin)
+            y1 = max(0, y1 - margin)
+            x2 = min(img.shape[1], x2 + margin)
+            y2 = min(img.shape[0], y2 + margin)
+
+            cropped_img = img[y1:y2, x1:x2]
+            temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=f'_cropped_{i}.jpg')
+            cropped_filename = temp_file.name
+            cv2.imwrite(cropped_filename, cropped_img)
+            cropped_image_paths.append(cropped_filename)
+
+        # 시각화된 전체 이미지 저장
         temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.jpg')
         temp_filename = temp_file.name
         cv2.imwrite(temp_filename, img)
 
-        return send_file(temp_filename, mimetype='image/jpeg')
-
+        # 결과 반환: 시각화된 이미지와 크롭된 이미지 경로
+        return jsonify({
+            "visualized_image": temp_filename,
+            "cropped_images": cropped_image_paths
+        }), 200
+    
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -142,6 +165,3 @@ def batch_process():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
