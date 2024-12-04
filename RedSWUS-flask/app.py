@@ -1,4 +1,6 @@
 from flask import Flask, jsonify, request
+import warnings
+warnings.filterwarnings("ignore", category=FutureWarning, module="torch")
 from models import db
 from video_handlers import handle_upload_video
 from yolo_handlers import handle_yolo_predict

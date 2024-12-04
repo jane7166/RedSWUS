@@ -18,11 +18,12 @@ class STRApp:
 
     def _load_model(self):
         if self._model is None:
-            self._model = torch.hub.load('baudm/parseq', 'parseq', pretrained=True, trust_repo=True).eval()
+            self._model = torch.hub.load('baudm/parseq', 'parseq', pretrained=True, trust_repo=True, weights_only = True).eval()
         return self._model
 
     def get_second_preprocessing_result(self, second_result_code):
         return SecondPreprocessingResult.query.filter_by(second_result_code=second_result_code).first()
+
 
     def save_str_result(self, video_code, second_result_code, str_result_path):
         str_result = StrResult(
