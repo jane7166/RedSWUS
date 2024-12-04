@@ -1,7 +1,9 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, Response
 import warnings
 warnings.filterwarnings("ignore", category=FutureWarning, module="torch")
 from models import db
+import time
+from flask_cors import CORS
 from video_handlers import handle_upload_video
 from yolo_handlers import handle_yolo_predict
 from firstPrepro_handlers import handle_firstPrepro
@@ -10,6 +12,7 @@ from secondPrepro_handlers import handle_secondPrepro
 from str_handlers import handle_str_predict
 
 app = Flask(__name__)
+CORS(app)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///video_analysis.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -68,6 +71,19 @@ def full_pipeline():
             "message": f"An error occurred during full pipeline execution: {str(e)}"
         }), 500
 
+
+@app.route('/log-stream')
+def log_stream():
+    def generate_logs():
+        try:
+            # 실제 로그 데이터를 여기서 생성
+            logs = ["Pipeline started", "Step 1 completed", "Step 2 completed"]
+            for log in logs:
+                yield f"data: {log}\n\n"
+                time.sleep(1)  # 로그 간 간격 (1초)
+        except GeneratorExit:
+            print("Client disconnected.")
+    return Response(generate_logs(), content_type='text/event-stream')
 # 서버 실행
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
