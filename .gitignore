@@ -12,6 +12,9 @@ yarn-error.log*
 lerna-debug.log*
 .pnpm-debug.log*
 
+
+
+
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
@@ -156,7 +159,7 @@ RedSWUS-flask/redswusFlask/pyvenv.cfg
 *.dll
 *.lib
 *.db
-
+RedSWUS-flask/yolov9
 # Ignore Python virtual environment
 RedSWUS-flask/redswusFlask/pyvenv.cfg
 RedSWUS-flask/redswusFlask/share/
