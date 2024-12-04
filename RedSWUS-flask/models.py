@@ -72,3 +72,18 @@ class StrResult(db.Model):
     # 관계 설정
     video = db.relationship('Video', backref=db.backref('str_results', lazy=True))
     second_result = db.relationship('SecondPreprocessingResult', backref=db.backref('str_results', lazy=True))
+
+class DetectionResult(db.Model):
+    __tablename__ = 'detection_result'
+    
+    detection_result_code = db.Column(db.Integer, primary_key=True)  # 감지 결과 코드 (PK)
+    video_code = db.Column(db.Integer, db.ForeignKey('video.video_code'), nullable=False)  # Video 코드 (FK)
+    yolo_result_code = db.Column(db.Integer, db.ForeignKey('yolo_result.yolo_result_code'), nullable=False)  # YOLO 결과 코드 (FK)
+    object_class = db.Column(db.String(255), nullable=False)  # 감지된 객체 클래스
+    confidence_score = db.Column(db.Float, nullable=False)  # 객체 감지 신뢰도 점수
+    detection_result_path = db.Column(db.String(255), nullable=False)  # 감지된 결과 이미지 경로
+    
+    # 관계 설정
+    video = db.relationship('Video', backref=db.backref('detection_results', lazy=True))
+    yolo_result = db.relationship('YoloResult', backref=db.backref('detection_results', lazy=True))
+
