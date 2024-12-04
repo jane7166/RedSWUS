@@ -159,6 +159,8 @@ RedSWUS-flask/redswusFlask/pyvenv.cfg
 # Ignore Python virtual environment
 RedSWUS-flask/redswusFlask/pyvenv.cfg
 RedSWUS-flask/redswusFlask/share/
+./RedSWUS-flask/redswusFlask/*
+
 
 
 node_modules/
