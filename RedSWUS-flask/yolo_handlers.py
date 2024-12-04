@@ -21,7 +21,6 @@ class YOLOApp:
 # YOLOAPP 인스턴스 생성
 yolo_app = YOLOApp()
 
-@app.route('/predict', methods=['POST'])
 def handle_yolo_predict():
     if 'file' not in request.files:
         return jsonify({"message": "No file part in the request"}), 400
@@ -36,19 +35,25 @@ def handle_yolo_predict():
 
     # 파일 처리
     if file.filename.endswith(('.jpg', '.jpeg', '.png')):
-        return jsonify({"message": "Image processing is currently unsupported."}), 400
-
-    elif file.filename.endswith(('.mp4', '.avi', '.mov', '.mkv')):
         try:
-            output_path = os.path.join('./detect', f"output_{os.path.splitext(file.filename)[0]}")
-            os.makedirs(output_path, exist_ok=True)
+            # YOLOv9 모델을 사용하여 이미지 처리
+            processed_image = yolo_app.detect_objects(file_path)
 
-            # YOLOv9 모델을 사용하여 비디오 처리
-            yolo_app.detect_video(file_path, output_path)
+            # 처리된 이미지 저장
+            result_image_path = os.path.join('./detect', f"output_{file.filename}")
+            cv2.imwrite(result_image_path, processed_image)
 
-            return jsonify({"message": "Video processed successfully", "output_folder": output_path}), 200
+            # 데이터베이스에 결과 저장
+            detection_result = DetectionResult(
+                file_name=file.filename,
+                output_image_path=result_image_path,
+                model_name="YOLOv9"
+            )
+            db.session.add(detection_result)
+            db.session.commit()
+
+            return jsonify({"message": "Image processed successfully", "output_image": result_image_path}), 200
         except Exception as e:
-            return jsonify({"message": f"Error during video processing: {str(e)}"}), 500
-
+            return jsonify({"message": f"Error during processing: {str(e)}"}), 500
     else:
-        return jsonify({"message": "Unsupported file format. Only MP4, AVI, MOV, MKV are supported."}), 400
+        return jsonify({"message": "Unsupported file format. Only JPG, PNG are supported."}), 400
