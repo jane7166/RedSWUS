@@ -11,28 +11,6 @@ from detectron2.engine import DefaultPredictor
 from detectron2.config import get_cfg
 from model_detection import setup_cfg, get_parser, VisualizationDemo, save_result_to_txt
 
-# Flask 앱 초기화
-app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///your_database.db'  # DB 설정
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
-db = SQLAlchemy(app)
-
-# 데이터베이스 모델 정의
-class Video(db.Model):
-    __tablename__ = 'video'
-    video_code = db.Column(db.Integer, primary_key=True)
-    upload_time = db.Column(db.DateTime, nullable=False)
-    video_path = db.Column(db.String(255), nullable=False)
-
-class FirstPreprocessingResult(db.Model):
-    __tablename__ = '1st_preprocessing_result'
-    first_result_code = db.Column(db.Integer, primary_key=True)
-    video_code = db.Column(db.Integer, db.ForeignKey('video.video_code'), nullable=False)
-    yolo_result_code = db.Column(db.Integer, nullable=False)
-    first_result_path = db.Column(db.String(255), nullable=False)
-    video = db.relationship('Video', backref=db.backref('first_preprocessing_results', lazy=True))
-
 # Detectron2 설정 및 모델 불러오기
 cfg = get_cfg()
 cfg.merge_from_file("./config.yaml")  # YAML 파일 경로 설정
