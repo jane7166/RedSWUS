@@ -6,7 +6,7 @@ import glob
 import tempfile
 import time
 from flask import Flask, request, jsonify, send_file
-from flask_sqlalchemy import SQLAlchemy
+from models import db, FirstPreprocessingResult
 from detectron2.engine import DefaultPredictor
 from detectron2.config import get_cfg
 from model_detection import setup_cfg, get_parser, VisualizationDemo, save_result_to_txt
