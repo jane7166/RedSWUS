@@ -3,7 +3,7 @@ from models import db
 from video_handlers import handle_upload_video
 from yolo_handlers import handle_yolo_predict
 from firstPrepro_handlers import handle_firstPrepro
-from std_handlers import handle_std_predict
+from std_handlers import run_all_handlers
 from secondPrepro_handlers import handle_secondPrepro
 from str_handlers import handle_str_predict
 
@@ -36,7 +36,7 @@ def full_pipeline():
         first_result_code = first_prepro_response[0].get("first_result_code")
 
         # Step 4: STD 수행
-        std_response = handle_std_predict(first_result_code=first_result_code)
+        std_response = run_all_handlers(first_result_code=first_result_code)
         if std_response[1] != 200:
             return std_response
         std_result_code = std_response[0].get("std_result_code")
