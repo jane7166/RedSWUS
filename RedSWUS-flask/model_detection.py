@@ -39,7 +39,7 @@ def get_parser():
     parser = argparse.ArgumentParser(description="Detectron2 Demo")
     parser.add_argument(
         "--config-file",
-        default="./config.yaml",#�ъ슜�� yaml �뚯씪 寃쎈줈 諛� �뚯씪紐�**
+        default="./config.yaml",#사용할 yaml 파일 경로 및 파일명**
         metavar="FILE",
         help="path to config file",
     )

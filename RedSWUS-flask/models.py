@@ -98,10 +98,3 @@ class DetectionResult(db.Model):
     video = db.relationship('Video', backref=db.backref('detection_results', lazy=True))
     yolo_result = db.relationship('YoloResult', backref=db.backref('detection_results', lazy=True))
 
-if __name__ == "__main__":
-    print("hello world")
-    with app.app_context():  # 컨텍스트 활성화
-        db.create_all()  # 테이블 생성
-        tables = db.engine.table_names()
-        print("테이블 목록:", tables)
-    app.run(debug=True)

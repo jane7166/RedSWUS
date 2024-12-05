@@ -46,11 +46,12 @@ const VideoUploadScreen: React.FC = () => {
         });
 
         const result = await response.json();
+        console.log(result)
         setIsProcessing(false);
         setLog((prevLog) => [
           ...prevLog,
           "Processing completed.",
-          `Result: ${result.message}`,
+          `Result: ${JSON.stringify(result.str_result)}`,
         ]);
       } catch {
         setIsProcessing(false);

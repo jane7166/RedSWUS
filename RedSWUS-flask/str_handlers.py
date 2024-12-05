@@ -18,7 +18,7 @@ class STRApp:
 
     def _load_model(self):
         if self._model is None:
-            self._model = torch.hub.load('baudm/parseq', 'parseq', pretrained=True, trust_repo=True, weights_only = True).eval()
+            self._model = torch.hub.load('baudm/parseq', 'parseq', pretrained=True, trust_repo=True).eval()
         return self._model
 
     def get_second_preprocessing_result(self, second_result_code):
@@ -53,36 +53,40 @@ class STRApp:
 str_app = STRApp()
 
 # 핸들러 함수
-def handle_str_predict():
+def handle_str_predict(second_code_list):
     try:
-        second_result_code = request.form.get('second_result_code')
-        if not second_result_code:
-            return jsonify({"status": "error", "message": "second_result_code is required."}), 400
+        text_results = []
 
-        second_result = str_app.get_second_preprocessing_result(second_result_code)
-        if not second_result:
-            return jsonify({"status": "error", "message": f"Second result with ID {second_result_code} not found."}), 404
+        for second_result_code in second_code_list:
+            if not second_result_code:
+                return jsonify({"status": "error", "message": "second_result_code is required."}), 400
 
-        secondprepro_path = second_result.second_result_path
-        if not os.path.exists(secondprepro_path):
-            return jsonify({"status": "error", "message": f"File not found at {secondprepro_path}."}), 404
+            second_result = str_app.get_second_preprocessing_result(second_result_code)
+            if not second_result:
+                return jsonify({"status": "error", "message": f"Second result with ID {second_result_code} not found."}), 404
 
-        secondimage = Image.open(secondprepro_path)
+            secondprepro_path = second_result.second_result_path
+            if not os.path.exists(secondprepro_path):
+                return jsonify({"status": "error", "message": f"File not found at {secondprepro_path}."}), 404
 
-        text_result = str_app.STRpredict(secondimage)
+            secondimage = Image.open(secondprepro_path)
 
-        str_result_path = os.path.join("uploaded_videos", f"str_result_{second_result_code}.txt")
-        with open(str_result_path, "w") as f:
-            f.write(text_result['text'])
+            text_result = str_app.STRpredict(secondimage)
+            text_results.append(text_result['text'])
 
-        str_app.save_str_result(second_result.video_code, second_result_code, str_result_path)
+            str_result_path = os.path.join("./uploaded_videos", f"str_result_{second_result_code}.txt")
+            with open(str_result_path, "w") as f:
+                f.write(text_result['text'])
 
-        return jsonify({
+            str_app.save_str_result(second_result.video_code, second_result_code, str_result_path)
+
+        print(text_results)
+        return {
             "status": "success",
             "message": "STR result saved successfully.",
-            "result": text_result,
+            "result": text_results,
             "str_result_path": str_result_path
-        })
+        }, 200
 
     except Exception as e:
         return jsonify({"status": "error", "message": f"An error occurred: {str(e)}"}), 500

@@ -32,46 +32,68 @@ class FirstPreproApp:
         os.makedirs(self.output_folder, exist_ok=True)
 
     def process_first_prepro(self, yolo_result_code):
-        # YOLO 결과 코드로 이미지 찾기
+
+        # YOLO 결과 코드로 이미지 경로 확인
         yolo_result = YoloResult.query.filter_by(yolo_result_code=yolo_result_code).first()
         if not yolo_result:
             return {"status": "error", "message": f"YOLO result with ID {yolo_result_code} not found."}, 404
 
-        # YOLO 결과 이미지 경로 확인
-        image_path = yolo_result.yolo_result_path
-        if not os.path.exists(image_path):
-            return {"status": "error", "message": f"File not found at {image_path}."}, 404
+        # YOLO 결과 이미지 폴더 경로
+        image_folder = yolo_result.yolo_result_path
+        if not os.path.exists(image_folder):
+            return {"status": "error", "message": f"Folder not found at {image_folder}."}, 404
 
-        # 이미지 열기 및 전처리 수행
-        image = cv2.imread(image_path)
-        processed_image = preprocess_image(image)
+        # 모든 이미지 파일 처리
+        processed_paths = []
+        first_code_list = []
+        for filename in os.listdir(image_folder):
+            if filename.endswith(('.jpg', '.jpeg', '.png')):  # 지원되는 이미지 확장자만 처리
+                image_path = os.path.join(image_folder, filename)
 
-        # 결과 저장 경로 설정
-        output_path = os.path.join(self.output_folder, f"first_prepro_{yolo_result_code}.png")
-        cv2.imwrite(output_path, processed_image)
+                print(image_path)
+                
+                # 이미지 열기
+                image = cv2.imread(image_path)
+                if image is None:
+                    print(f"Failed to load image at path: {image_path}. Skipping.")
+                    continue
 
-        # 데이터베이스에 1차 전처리 결과 저장
-        first_prepro_result = FirstPreprocessingResult(
-            video_code=yolo_result.video_code,
-            yolo_result_code=yolo_result_code,
-            first_result_path=output_path
-        )
-        db.session.add(first_prepro_result)
-        db.session.commit()
+                # 이미지 전처리
+                processed_image = preprocess_image(image)
+
+                # 결과 저장 경로 설정
+                output_filename = f"first_prepro_{yolo_result_code}_{filename}"
+                output_path = os.path.join(self.output_folder, output_filename)
+                cv2.imwrite(output_path, processed_image)
+                processed_paths.append(output_path)
+
+                # 데이터베이스에 1차 전처리 결과 저장 (옵션)
+                first_prepro_result = FirstPreprocessingResult(
+                    video_code=yolo_result.video_code,
+                    yolo_result_code=yolo_result_code,
+                    first_result_path=output_path
+                )
+                db.session.add(first_prepro_result)
+                db.session.commit()
+
+                first_code_list.append(first_prepro_result.first_result_code)
+
+        if not processed_paths:
+            return {"status": "error", "message": "No valid images found in the folder."}, 404
 
         return {
             "status": "success",
-            "message": "First preprocessing completed successfully.",
-            "first_result_path": output_path
+            "message": "First preprocessing completed successfully for all images.",
+            "processed_files": processed_paths,
+            "std_result_code": first_prepro_result.first_result_code,
+            "first_code_list": first_code_list
         }, 200
 
 # FirstPreproApp 인스턴스 생성
-first_prepro_app = FirstPreproApp(output_folder="first_preprocessed")
+first_prepro_app = FirstPreproApp(output_folder="./first_preprocessed")
 
 # 핸들러 함수
-def handle_firstPrepro():
-    yolo_result_code = request.form.get('yolo_result_code')
+def handle_firstPrepro(yolo_result_code):
     if not yolo_result_code:
         return jsonify({"status": "error", "message": "yolo_result_code is required."}), 400
-
-    return jsonify(first_prepro_app.process_first_prepro(yolo_result_code))
+    return first_prepro_app.process_first_prepro(yolo_result_code)

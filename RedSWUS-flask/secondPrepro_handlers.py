@@ -11,18 +11,17 @@ from models import db, SecondPreprocessingResult, StdResult
 
 # Second Preprocessing 핸들러 클래스
 class SecondPreproAPP:
-    def __init__(self, input_folder, output_folder):
-        self.input_folder = input_folder
+    def __init__(self, output_folder):
         self.output_folder = output_folder
         os.makedirs(self.output_folder, exist_ok=True)
+        # os.makedirs(self.output_folder, exist_ok=True)
         
         # PSF(Point Spread Function) 정의 (가우시안 필터 사용)
         self.psf = np.zeros((5, 5))  # 5x5 배열 생성
         self.psf[2, 2] = 1           # 중심에 값을 1로 설정
         self.psf = gaussian_filter(self.psf, sigma=1)  # 가우시안 필터 적용
 
-    def process_images(self):
-        std_result_code = request.form.get('std_result_code')
+    def process_images(self, std_result_code):
 
         # std_result_code가 없으면 에러 반환
         if not std_result_code:
@@ -65,23 +64,32 @@ class SecondPreproAPP:
             db.session.commit()
 
             # 처리된 이미지 표시 (옵션)
-            plt.imshow(convolved, cmap='gray')
-            plt.axis('off')  # 축 숨기기
-            plt.show()
+            # plt.imshow(convolved, cmap='gray')
+            # plt.axis('off')  # 축 숨기기
+            # plt.show()
 
-            return jsonify({
+            return {
                 "status": "success",
                 "message": "Second preprocessing completed successfully.",
-                "second_result_path": output_image_path
-            }), 200
+                "second_result_path": output_image_path,
+                "second_code_number": second_prepro_result.second_result_code
+            }, 200
 
         except Exception as e:
             return jsonify({"status": "error", "message": f"An error occurred: {str(e)}"}), 500
 
 # SecondPreproAPP 인스턴스 생성
-second_prepro_app = SecondPreproAPP(input_folder='/content/drive/MyDrive/crop/local_80',
-                                    output_folder='/content/drive/MyDrive/crop_prepro/80')
+second_prepro_app = SecondPreproAPP(output_folder='./second_preprocessed')
 
 # 핸들러 함수
-def handle_secondPrepro():
-    return second_prepro_app.process_images()
+def handle_secondPrepro(std_result_codes):
+    second_code_list = []
+
+    for std_result_code in std_result_codes:
+        res = second_prepro_app.process_images(std_result_code)
+        second_code_list.append(res[0].get("second_code_number"))
+    return {
+                "status": "success",
+                "message": "Second preprocessing completed successfully.",
+                "second_result_list": second_code_list
+            }, 200
