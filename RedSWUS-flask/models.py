@@ -1,4 +1,15 @@
+import os
+from flask import Flask
+from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
+
+app = Flask(__name__)
+CORS(app)
+
+# 현재 파일의 디렉토리 기준으로 SQLite 데이터베이스 경로 설정
+basedir = os.path.abspath(os.path.dirname(__file__))
+app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(basedir, 'video_analysis.db')}"
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy()
 
@@ -87,3 +98,10 @@ class DetectionResult(db.Model):
     video = db.relationship('Video', backref=db.backref('detection_results', lazy=True))
     yolo_result = db.relationship('YoloResult', backref=db.backref('detection_results', lazy=True))
 
+if __name__ == "__main__":
+    print("hello world")
+    with app.app_context():  # 컨텍스트 활성화
+        db.create_all()  # 테이블 생성
+        tables = db.engine.table_names()
+        print("테이블 목록:", tables)
+    app.run(debug=True)

@@ -38,6 +38,7 @@ class VideoAPP:
             return {"status": "error", "message": f"An error occurred: {str(e)}"}, 500
 
 # VideoAPP 인스턴스 생성
+
 video_app = VideoAPP(upload_folder="uploaded_videos")
 
 # 핸들러 함수

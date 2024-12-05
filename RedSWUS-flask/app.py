@@ -1,3 +1,4 @@
+import os
 from flask import Flask, jsonify, request, Response
 import warnings
 warnings.filterwarnings("ignore", category=FutureWarning, module="torch")
@@ -14,10 +15,25 @@ from str_handlers import handle_str_predict
 app = Flask(__name__)
 CORS(app)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///video_analysis.db'
+# 현재 파일의 디렉토리 기준으로 SQLite 데이터베이스 경로 설정
+basedir = os.path.abspath(os.path.dirname(__file__))
+app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(basedir, 'video_analysis.db')}"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
+
+from flask.cli import AppGroup
+
+db_cli = AppGroup("db")
+
+@db_cli.command("create")
+def create_tables():
+    """테이블 생성"""
+    with app.app_context():
+        db.create_all()
+        print("테이블 생성 완료.")
+
+app.cli.add_command(db_cli)
 
 @app.route('/full_pipeline', methods=['POST'])
 def full_pipeline():

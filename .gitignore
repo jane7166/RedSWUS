@@ -160,13 +160,20 @@ RedSWUS-flask/redswusFlask/pyvenv.cfg
 *.lib
 *.db
 RedSWUS-flask/yolov9
+RedSWUS-flask/detectron2
 # Ignore Python virtual environment
 RedSWUS-flask/redswusFlask/pyvenv.cfg
 RedSWUS-flask/redswusFlask/share/
 ./RedSWUS-flask/redswusFlask/*
 
-
-
+./RedSWUS-flask/clean_env/*
+RedSWUS-flask/clean_env/pyvenv.cfg
+RedSWUS-flask/clean_env/share/
+RedSWUS-flask/clean_env/Include/
+RedSWUS-flask/clean_env/Scripts/
+RedSWUS-flask/clean_env/Lib/
+RedSWUS-flask/clean_env/__pycache__/
+RedSWUS-flask/clean_env/pyvenv.cfg
 node_modules/
 
 

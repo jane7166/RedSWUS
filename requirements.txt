@@ -21,3 +21,11 @@ cython
 #이후에도 import 오류 발생할 경우 app.py에 있는 라이브러리 다운로드 모두 받기
 #ex_tempfile, numpy.. 등등
 >>>>>>> 8e9605882677adf63bfa2a495233cc00a6670f0b
+flask-cors
+
+numpy<2
+streamlit==1.32.0
+protobuf<5
+pillow<11
+packaging<24
+markdown-it-py<3.0.0

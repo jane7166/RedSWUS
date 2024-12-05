@@ -40,7 +40,7 @@ const VideoUploadScreen: React.FC = () => {
       formData.append("file", selectedFile);
 
       try {
-        const response = await fetch("http://localhost:5000/upload", {
+        const response = await fetch("http://localhost:5000/full_pipeline", {
           method: "POST",
           body: formData,
         });
@@ -74,7 +74,6 @@ const VideoUploadScreen: React.FC = () => {
         <HeroTitle>RedSWUs ORT</HeroTitle>
         <Subtitle>
           화상 영상 데이터 속 안경에 반사된 문자를 인식하는 공격모델 ORT입니다.
-          YOLO-1차 전처리-TextfuseNet-2차 전처리-Parseq으로 이루어졌습니다.
         </Subtitle>
         <InputBox>
           <InputLabel>Select File</InputLabel>
