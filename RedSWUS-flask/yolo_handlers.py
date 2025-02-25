@@ -9,7 +9,7 @@ class YOLOApp:
     def __init__(self):
         self.custom_weights = './pt/yolo.pt'  # 로컬 YOLOv9 가중치 경로
 
-    def detect_video(self, video_path, output_path, stride=6, img_size=640, conf=0.5):
+    def detect_video(self, video_path, output_path, stride=10, img_size=640, conf=0.5):
         # 비디오 파일 처리
         try:
             os.system(f"python3 ./yolov9/detect.py --weights {self.custom_weights} --vid-stride {stride} \
