@@ -81,6 +81,16 @@ def handle_str_predict(second_code_list):
             str_app.save_str_result(second_result.video_code, second_result_code, str_result_path)
 
         print(text_results)
+
+        # STR 결과 하나의 txt 파일에 저장
+        os.makedirs("./finalResult", exist_ok=True)
+
+        final_str_result_path = "./finalResult/final_str_result.txt"
+
+        with open(final_str_result_path, "w") as f:
+            for text in text_results:
+                f.write(text + "\n")
+
         return {
             "status": "success",
             "message": "STR result saved successfully.",
