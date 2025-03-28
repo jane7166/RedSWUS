@@ -1,5 +1,7 @@
 import os
 from flask import Flask, jsonify, request, Response
+from concurrent.futures import ProcessPoolExecutor, as_completed
+from std_handlers import DetectronHandler  # std 핸들러에서 클래스를 직접 import
 import warnings
 warnings.filterwarnings("ignore", category=FutureWarning, module="torch")
 from models import db
@@ -22,6 +24,11 @@ app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(basedir, 'vide
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
+
+def std_worker(first_result_code):
+    handler = DetectronHandler()
+    return first_result_code, handler.handle_std_predict(first_result_code)
+
 
 @app.route('/full_pipeline', methods=['POST'])
 def full_pipeline():
@@ -49,12 +56,27 @@ def full_pipeline():
         response_data = first_prepro_response[0]
         first_result_list = response_data.get("first_code_list")
 
-        # Step 4: STD 수행
-        std_response = run_all_handlers(first_result_list=first_result_list)
-        if std_response[1] != 200:
-            return jsonify(std_response[0]), std_response[1]
-        std_result_code = std_response[0].get("std_result_list")
-        print(std_result_code)
+        # Step 4: STD 수행 (병렬 처리)
+        std_result_code = []
+        with ProcessPoolExecutor(max_workers=os.cpu_count() or 4) as executor:
+            futures = [executor.submit(std_worker, code) for code in first_result_list]
+            for future in as_completed(futures):
+                code, response = future.result()
+
+                if response == 0:
+                    continue  # 예측 결과 없음
+
+                if response[1] != 200:
+                    print(f"[STD ERROR] {code}: {response[0].get('error')}")
+                    continue
+
+                result_code = response[0].get("std_result_code")
+                print(f"[STD SUCCESS] {code} -> {result_code}")
+                std_result_code.append(result_code)
+
+        if not std_result_code:
+            return jsonify({"error": "No valid STD results"}), 400
+
 
         # Step 5: 2차 전처리 수행
         second_prepro_response = handle_secondPrepro(std_result_codes=std_result_code)
