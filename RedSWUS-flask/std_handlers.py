@@ -63,7 +63,10 @@ class DetectronHandler:
                 y2 = min(img.shape[0], y2 + 10)
                 cropped_img = img[y1:y2, x1:x2]
 
-                filename = f"{uuid.uuid4().hex}_cropped_{cls}.jpg"
+                original_name = os.path.basename(file_path)  # 예: 'image1.jpg'
+                name_wo_ext, ext = os.path.splitext(original_name)     # 예: 'image1', '.jpg'
+                filename = f"{name_wo_ext}_cropped_{cls}.jpg"
+                
                 output_path = os.path.join("./stdoutput", filename)
                 cv2.imwrite(output_path, cropped_img)
                 cropped_paths.append(output_path)
