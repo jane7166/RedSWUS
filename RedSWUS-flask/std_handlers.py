@@ -1,5 +1,6 @@
 import os
 import cv2
+import time
 import numpy as np
 import torch
 import uuid
@@ -45,7 +46,13 @@ class DetectronHandler:
             if img is None:
                 return {"error": "Failed to decode the image."}, 400
 
+            start_time = time.time()
             outputs = self.predictor(img)
+            end_time = time.time()
+
+            elapsed_time = end_time - start_time
+            print(f"[INFO] 추론 시간: {elapsed_time:.4f}초")
+
             instances = outputs["instances"].to("cpu")
             boxes = instances.pred_boxes.tensor.numpy()
             classes = instances.pred_classes.numpy()
@@ -77,7 +84,7 @@ class DetectronHandler:
                 "cropped_paths": cropped_paths,
                 "boxes": boxes.tolist(),
                 "classes": classes.tolist(),
-                "scores": scores.tolist()
+                "scores": scores.tolist(),
             }, 200
 
         except Exception as e:

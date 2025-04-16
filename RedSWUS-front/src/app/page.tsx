@@ -8,7 +8,7 @@ const VideoUploadScreen: React.FC = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   useEffect(() => {
-    const eventSource = new EventSource("http://localhost:5000/log-stream");
+    const eventSource = new EventSource("http://localhost:5001/log-stream");
 
     eventSource.onmessage = (event) => {
       setLog((prevLogs) => [...prevLogs, event.data]);
@@ -40,7 +40,7 @@ const VideoUploadScreen: React.FC = () => {
       formData.append("file", selectedFile);
 
       try {
-        const response = await fetch("http://localhost:5000/full_pipeline", {
+        const response = await fetch("http://localhost:5001/full_pipeline", {
           method: "POST",
           body: formData,
         });

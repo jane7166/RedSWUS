@@ -4,6 +4,7 @@ from models import db, SecondPreprocessingResult, StrResult
 from PIL import Image
 import os
 import torch
+import traceback
 from torchvision import transforms as T
 
 # STR 모델 관련 클래스
@@ -99,4 +100,6 @@ def handle_str_predict(second_code_list):
         }, 200
 
     except Exception as e:
-        return jsonify({"status": "error", "message": f"An error occurred: {str(e)}"}), 500
+        print("[ERROR] STR 예외 발생:", str(e))
+        traceback.print_exc()
+        return jsonify({"status": "error", "message": "STR failed"}), 500
