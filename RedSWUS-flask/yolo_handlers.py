@@ -87,3 +87,20 @@ def handle_yolo_predict(video_id):
             return jsonify({"message": f"Error during processing: {str(e)}"}), 500
     else:
         return jsonify({"message": "Unsupported file format. Only MP4, AVI, MKV, MOV, WMV are supported."}), 400
+
+def handle_yolo_predict_return_frames(video_id):
+    padded_dir = os.path.join('./mp4_to_img', 'exp', 'crops', 'glasses', 'padded')
+    if not os.path.exists(padded_dir):
+        raise FileNotFoundError(f"YOLO 출력 디렉토리가 존재하지 않음: {padded_dir}")
+
+    # 프레임 이미지 경로 수집
+    frame_paths = sorted([
+        os.path.join(padded_dir, f)
+        for f in os.listdir(padded_dir)
+        if f.lower().endswith(('.jpg', '.jpeg', '.png'))
+    ])
+    
+    if not frame_paths:
+        raise FileNotFoundError("YOLO 출력 디렉토리 내에 유효한 이미지가 없습니다.")
+
+    return frame_paths

@@ -84,11 +84,12 @@ def handle_str_predict(second_code_list):
         print(text_results)
 
         # STR 결과 하나의 txt 파일에 저장
+                # STR 결과 하나의 txt 파일에 저장
         os.makedirs("./finalResult", exist_ok=True)
-
         final_str_result_path = "./finalResult/final_str_result.txt"
 
-        with open(final_str_result_path, "w") as f:
+        # ✔ append 모드로 변경
+        with open(final_str_result_path, "a") as f:
             for text in text_results:
                 f.write(text + "\n")
 

@@ -1,6 +1,7 @@
 # firstPrepro_handlers.py
 import os
 import cv2
+import uuid
 from flask import request, jsonify
 from models import db, FirstPreprocessingResult, YoloResult
 
@@ -32,45 +33,37 @@ class FirstPreproApp:
         os.makedirs(self.output_folder, exist_ok=True)
 
     def process_first_prepro(self, yolo_result_code):
-
-        # YOLO 결과 코드로 이미지 경로 확인
         yolo_result = YoloResult.query.filter_by(yolo_result_code=yolo_result_code).first()
         if not yolo_result:
             return {"status": "error", "message": f"YOLO result with ID {yolo_result_code} not found."}, 404
 
-        # YOLO 결과 이미지 폴더 경로
         image_folder = yolo_result.yolo_result_path
         if not os.path.exists(image_folder):
             return {"status": "error", "message": f"Folder not found at {image_folder}."}, 404
 
-        # 모든 이미지 파일 처리
         processed_paths = []
         first_code_list = []
         for filename in os.listdir(image_folder):
-            if filename.endswith(('.jpg', '.jpeg', '.png')):  # 지원되는 이미지 확장자만 처리
+            if filename.endswith(('.jpg', '.jpeg', '.png')):
                 image_path = os.path.join(image_folder, filename)
-
                 print(image_path)
-                
-                # 이미지 열기
                 image = cv2.imread(image_path)
                 if image is None:
                     print(f"Failed to load image at path: {image_path}. Skipping.")
                     continue
 
-                # 이미지 전처리
                 processed_image = preprocess_image(image)
 
-                # 결과 저장 경로 설정
+                first_result_code = str(uuid.uuid4())
                 output_filename = f"first_prepro_{yolo_result_code}_{filename}"
                 output_path = os.path.join(self.output_folder, output_filename)
                 cv2.imwrite(output_path, processed_image)
                 processed_paths.append(output_path)
 
-                # 데이터베이스에 1차 전처리 결과 저장 (옵션)
                 first_prepro_result = FirstPreprocessingResult(
                     video_code=yolo_result.video_code,
                     yolo_result_code=yolo_result_code,
+                    first_result_code=first_result_code,
                     first_result_path=output_path
                 )
                 db.session.add(first_prepro_result)
@@ -97,3 +90,37 @@ def handle_firstPrepro(yolo_result_code):
     if not yolo_result_code:
         return jsonify({"status": "error", "message": "yolo_result_code is required."}), 400
     return first_prepro_app.process_first_prepro(yolo_result_code)
+
+def handle_firstPrepro_single(image_path, video_code, yolo_result_code):
+    try:
+        if not os.path.exists(image_path):
+            raise FileNotFoundError(f"이미지 파일이 존재하지 않습니다: {image_path}")
+
+        image = cv2.imread(image_path)
+        if image is None:
+            raise ValueError(f"이미지 로딩 실패: {image_path}")
+
+        processed_image = preprocess_image(image)
+
+        first_result_code = str(uuid.uuid4())
+        output_dir = os.path.join('./first_preprocessed', first_result_code)
+        os.makedirs(output_dir, exist_ok=True)
+
+        output_filename = f"first_prepro_{os.path.basename(image_path)}"
+        output_path = os.path.join(output_dir, output_filename)
+        cv2.imwrite(output_path, processed_image)
+
+        first_result = FirstPreprocessingResult(
+            video_code=video_code,
+            yolo_result_code=yolo_result_code,
+            first_result_code=first_result_code,
+            first_result_path=output_path
+        )
+        db.session.add(first_result)
+        db.session.commit()
+
+        return first_result_code
+
+    except Exception as e:
+        print(f"[ERROR] handle_firstPrepro_single 실패: {e}")
+        return None

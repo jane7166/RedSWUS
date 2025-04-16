@@ -11,24 +11,21 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from models import db, StdResult
 from std_handlers import DetectronHandler
 from video_handlers import handle_upload_video
-from yolo_handlers import handle_yolo_predict
-from firstPrepro_handlers import handle_firstPrepro
+from yolo_handlers import handle_yolo_predict, handle_yolo_predict_return_frames
+from firstPrepro_handlers import handle_firstPrepro_single
 from secondPrepro_handlers import handle_secondPrepro
 from str_handlers import handle_str_predict
 
 warnings.filterwarnings("ignore", category=FutureWarning, module="torch")
 
-# app 인스턴스는 최상단에서 정의
 app = Flask(__name__)
 CORS(app)
 
-# DB 설정 및 초기화
 basedir = os.path.abspath(os.path.dirname(__file__))
 app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(basedir, 'video_analysis.db')}"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
 
-# thread-local 모델 캐시
 thread_local = threading.local()
 
 def get_handler():
@@ -38,10 +35,46 @@ def get_handler():
         print("[INFO] 모델 로딩 완료")
     return thread_local.handler
 
-def worker_std_handler(flask_app, code):
+def full_pipeline_per_frame(flask_app, frame_path, video_code, yolo_result_code):
     with flask_app.app_context():
-        handler = get_handler()
-        return handler.handle_std_predict(code)
+        try:
+            print(f"[DEBUG] 전달된 yolo_result_code: {yolo_result_code}")
+            # 1. First Preprocessing
+            first_code = handle_firstPrepro_single(frame_path, video_code, yolo_result_code)
+            if not first_code:
+                return None
+
+            # 2. STD
+            handler = get_handler()
+            std_result = handler.handle_std_predict(first_code)
+            if std_result == 0 or std_result[1] != 200:
+                return None
+
+            std_codes = []
+            for path in std_result[0]["cropped_paths"]:
+                std = StdResult(
+                    video_code=std_result[0]["video_code"],
+                    first_result_code=first_code,
+                    std_result_path=path
+                )
+                db.session.add(std)
+                db.session.flush()
+                std_codes.append(std.std_result_code)
+            db.session.commit()
+
+            # 3. Second Preprocessing
+            second_response = handle_secondPrepro(std_result_codes=std_codes)
+            if second_response[1] != 200:
+                return None
+            second_codes = second_response[0].get("second_result_list")
+
+            # 4. STR
+            str_response = handle_str_predict(second_code_list=second_codes)
+            return str_response
+
+        except Exception:
+            traceback.print_exc()
+            return None
 
 @app.route('/full_pipeline', methods=['POST'])
 def full_pipeline():
@@ -51,45 +84,33 @@ def full_pipeline():
             return upload_response
         video_id = upload_response[0].get("video_id")
 
+        # YOLO 실행 및 결과 코드 획득
         yolo_response = handle_yolo_predict(video_id=video_id)
         if yolo_response[1] != 200:
             return yolo_response
         yolo_result_code = yolo_response[0].get_json().get("yolo_result_code")
+        print(f"[DEBUG] 받은 yolo_result_code: {yolo_result_code}")
 
-        first_prepro_response = handle_firstPrepro(yolo_result_code=yolo_result_code)
-        if first_prepro_response[1] != 200:
-            return first_prepro_response
-        first_result_list = first_prepro_response[0].get("first_code_list")
+        # YOLO 탐지 결과로부터 프레임 경로 획득
+        frame_paths = handle_yolo_predict_return_frames(video_id=video_id)
+        if not frame_paths:
+            return jsonify({"error": "YOLO 처리 실패"}), 400
 
-        std_result_code = []
+        results = []
         with ThreadPoolExecutor(max_workers=4) as executor:
-            futures = [executor.submit(worker_std_handler, app, code) for code in first_result_list]
+            futures = [
+                executor.submit(full_pipeline_per_frame, app, path, video_id, yolo_result_code)
+                for path in frame_paths
+            ]
             for future in as_completed(futures):
-                response = future.result()
-                if response == 0 or response[1] != 200:
-                    continue
-                result = response[0]
-                for path in result["cropped_paths"]:
-                    std_result = StdResult(
-                        video_code=result["video_code"],
-                        first_result_code=result["first_result_code"],
-                        std_result_path=path
-                    )
-                    db.session.add(std_result)
-                    db.session.flush()
-                    std_result_code.append(std_result.std_result_code)
-        db.session.commit()
+                result = future.result()
+                if result:
+                    results.append(result)
 
-        if not std_result_code:
-            return jsonify({"error": "No valid STD results"}), 400
+        if not results:
+            return jsonify({"error": "모든 파이프라인 처리 실패"}), 400
 
-        second_prepro_response = handle_secondPrepro(std_result_codes=std_result_code)
-        if second_prepro_response[1] != 200:
-            return second_prepro_response
-        second_result_code = second_prepro_response[0].get("second_result_list")
-
-        str_response = handle_str_predict(second_code_list=second_result_code)
-        return str_response  # 성공 & 실패 둘 다 이미 jsonify됨
+        return jsonify({"status": "success", "results": results}), 200
 
     except Exception as e:
         print("[ERROR] Full pipeline 예외 발생:")
@@ -98,7 +119,6 @@ def full_pipeline():
             "status": "error",
             "message": f"An error occurred during full pipeline execution: {str(e)}"
         }), 500
-
 
 if __name__ == '__main__':
     with app.app_context():
