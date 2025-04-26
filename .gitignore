@@ -15,7 +15,12 @@ lerna-debug.log*
 # Python virtual environment
 RedSWUS-flask/venv/
 
-
+#detect file
+RedSWUS-flask/upload_videos
+RedSWUS-flask/mp4_to_img
+RedSWUS-flask/stdoutput
+RedSWUS-flask/first_preprocessed
+RedSWUS-flask/finalResult
 
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
