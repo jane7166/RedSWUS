@@ -14,7 +14,6 @@ class YOLOApp:
         try:
             os.system(f"python3 ./yolov9/detect.py --weights {self.custom_weights} --vid-stride {stride} \
                         --img {img_size} --conf {conf} --exist-ok --source {video_path} --save-crop --project {output_path}")
-            print(f"비디오 파일 {video_path} 처리가 완료되었습니다.")
         except Exception as e:
             print(f"비디오 처리 중 오류 발생: {e}")
 
@@ -67,7 +66,6 @@ def handle_yolo_predict(video_id):
                     # 패딩된 이미지 저장
                     padded_image_path = os.path.join(result_image_path, f"padded", filename)
                     cv2.imwrite(padded_image_path, cv2.cvtColor(padded_image, cv2.COLOR_RGB2BGR))
-                    print(f"패딩된 이미지 저장 완료: {padded_image_path}")
 
                     # 데이터베이스에 결과 저장
                 padded_image_path = os.path.join(result_image_path, f"padded")

@@ -14,11 +14,9 @@ class DetectronHandler:
 
         # CUDA 디바이스 명시적으로 설정
         if torch.cuda.is_available():
-            print("[INFO] CUDA 사용 가능 - GPU 디바이스 설정 중")
             torch.cuda.set_device(0)
             device = "cuda"
         else:
-            print("[INFO] CUDA 사용 불가 - CPU로 설정")
             device = "cpu"
             
         torch.cuda.empty_cache()
@@ -46,13 +44,7 @@ class DetectronHandler:
             if img is None:
                 return {"error": "Failed to decode the image."}, 400
 
-            start_time = time.time()
             outputs = self.predictor(img)
-            end_time = time.time()
-
-            elapsed_time = end_time - start_time
-            print(f"[INFO] 추론 시간: {elapsed_time:.4f}초")
-
             instances = outputs["instances"].to("cpu")
             boxes = instances.pred_boxes.tensor.numpy()
             classes = instances.pred_classes.numpy()

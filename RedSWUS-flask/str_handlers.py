@@ -1,6 +1,6 @@
 # str_handlers.py
 from flask import request, jsonify
-from models import db, SecondPreprocessingResult, StrResult
+from models import db, StdResult, StrResult
 from PIL import Image
 import os
 import torch
@@ -22,8 +22,8 @@ class STRApp:
             self._model = torch.hub.load('baudm/parseq', 'parseq', pretrained=True, trust_repo=True).eval()
         return self._model
 
-    def get_second_preprocessing_result(self, second_result_code):
-        return SecondPreprocessingResult.query.filter_by(second_result_code=second_result_code).first()
+    def get_std_result(self, std_result_code):
+        return StdResult.query.filter_by(std_result_code=std_result_code).first()
 
 
     def save_str_result(self, video_code, second_result_code, str_result_path):
@@ -54,41 +54,36 @@ class STRApp:
 str_app = STRApp()
 
 # 핸들러 함수
-def handle_str_predict(second_code_list):
+def handle_str_predict(std_result_codes):
     try:
         text_results = []
 
-        for second_result_code in second_code_list:
-            if not second_result_code:
-                return jsonify({"status": "error", "message": "second_result_code is required."}), 400
+        for std_result_code in std_result_codes:
+            if not std_result_code:
+                return jsonify({"status": "error", "message": "std_result_code is required."}), 400
 
-            second_result = str_app.get_second_preprocessing_result(second_result_code)
-            if not second_result:
-                return jsonify({"status": "error", "message": f"Second result with ID {second_result_code} not found."}), 404
+            std_result = str_app.get_std_result(std_result_code)
+            if not std_result:
+                return jsonify({"status": "error", "message": f"STD result with ID {std_result_code} not found."}), 404
 
-            secondprepro_path = second_result.second_result_path
-            if not os.path.exists(secondprepro_path):
-                return jsonify({"status": "error", "message": f"File not found at {secondprepro_path}."}), 404
+            std_result_path = std_result.std_result_path
+            if not os.path.exists(std_result_path):
+                return jsonify({"status": "error", "message": f"File not found at {std_result_path}."}), 404
 
-            secondimage = Image.open(secondprepro_path)
+            image = Image.open(std_result_path)
 
-            text_result = str_app.STRpredict(secondimage)
+            text_result = str_app.STRpredict(image)
             text_results.append(text_result['text'])
 
-            str_result_path = os.path.join("./uploaded_videos", f"str_result_{second_result_code}.txt")
+            str_result_path = os.path.join("./uploaded_videos", f"str_result_{std_result_code}.txt")
             with open(str_result_path, "w") as f:
                 f.write(text_result['text'])
 
-            str_app.save_str_result(second_result.video_code, second_result_code, str_result_path)
+            str_app.save_str_result(std_result.video_code, std_result_code, str_result_path)
 
-        print(text_results)
-
-        # STR 결과 하나의 txt 파일에 저장
-                # STR 결과 하나의 txt 파일에 저장
         os.makedirs("./finalResult", exist_ok=True)
         final_str_result_path = "./finalResult/final_str_result.txt"
 
-        # ✔ append 모드로 변경
         with open(final_str_result_path, "a") as f:
             for text in text_results:
                 f.write(text + "\n")

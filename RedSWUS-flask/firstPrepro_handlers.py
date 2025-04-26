@@ -46,10 +46,8 @@ class FirstPreproApp:
         for filename in os.listdir(image_folder):
             if filename.endswith(('.jpg', '.jpeg', '.png')):
                 image_path = os.path.join(image_folder, filename)
-                print(image_path)
                 image = cv2.imread(image_path)
                 if image is None:
-                    print(f"Failed to load image at path: {image_path}. Skipping.")
                     continue
 
                 processed_image = preprocess_image(image)

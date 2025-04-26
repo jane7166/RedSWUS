@@ -55,29 +55,17 @@ class StdResult(db.Model):
     video = db.relationship('Video', backref=db.backref('std_results', lazy=True))
     first_result = db.relationship('FirstPreprocessingResult', backref=db.backref('std_results', lazy=True))
 
-# 2nd Preprocessing Result 테이블
-class SecondPreprocessingResult(db.Model):
-    __tablename__ = '2nd_preprocessing'
-
-    second_result_code = db.Column(db.Integer, primary_key=True)
-    video_code = db.Column(db.Integer, db.ForeignKey('video.video_code'), nullable=False)
-    std_result_code = db.Column(db.Integer, db.ForeignKey('std_result.std_result_code'), nullable=False)
-    second_result_path = db.Column(db.String(255), nullable=False)
-
-    video = db.relationship('Video', backref=db.backref('second_preprocessing_results', lazy=True))
-    std_result = db.relationship('StdResult', backref=db.backref('second_preprocessing_results', lazy=True))
-
 # STR Result 테이블
 class StrResult(db.Model):
     __tablename__ = 'str_result'
 
     str_result_code = db.Column(db.Integer, primary_key=True)
     video_code = db.Column(db.Integer, db.ForeignKey('video.video_code'), nullable=False)
-    second_result_code = db.Column(db.Integer, db.ForeignKey('2nd_preprocessing.second_result_code'), nullable=False)
+    second_result_code = db.Column(db.Integer, db.ForeignKey('std_result.std_result_code'), nullable=False)
     str_result_path = db.Column(db.String(255), nullable=False)
 
     video = db.relationship('Video', backref=db.backref('str_results', lazy=True))
-    second_result = db.relationship('SecondPreprocessingResult', backref=db.backref('str_results', lazy=True))
+    second_result = db.relationship('StdResult', backref=db.backref('str_results', lazy=True))
 
 # Detection Result 테이블
 class DetectionResult(db.Model):
