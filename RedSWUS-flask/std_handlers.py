@@ -1,9 +1,7 @@
 import os
 import cv2
-import time
 import numpy as np
 import torch
-import uuid
 from detectron2.engine import DefaultPredictor
 from detectron2.config import get_cfg
 from models import FirstPreprocessingResult
@@ -32,11 +30,11 @@ class DetectronHandler:
         first_result = FirstPreprocessingResult.query.filter_by(first_result_code=first_result_code).first()
         if not first_result:
             return {"error": "First preprocessing result not found."}, 404
-        
+
         file_path = first_result.first_result_path
         if not os.path.exists(file_path):
             return {"error": "File not found at the specified path."}, 404
-        
+
         try:
             with open(file_path, 'rb') as file:
                 np_img = np.frombuffer(file.read(), np.uint8)
@@ -63,12 +61,21 @@ class DetectronHandler:
                 cropped_img = img[y1:y2, x1:x2]
 
                 original_name = os.path.basename(file_path)  # 예: 'image1.jpg'
-                name_wo_ext, ext = os.path.splitext(original_name)     # 예: 'image1', '.jpg'
+                name_wo_ext, ext = os.path.splitext(original_name)  # 'image1', '.jpg'
                 filename = f"{name_wo_ext}_cropped_{cls}.jpg"
-                
+
                 output_path = os.path.join("./stdoutput", filename)
                 cv2.imwrite(output_path, cropped_img)
                 cropped_paths.append(output_path)
+
+            # === 추가 부분: 박스 좌표를 txt 파일로 저장 ===
+            txt_filename = f"{os.path.splitext(os.path.basename(file_path))[0]}.txt"
+            txt_save_path = os.path.join("./stdoutput", txt_filename)
+            
+            with open(txt_save_path, 'w', encoding='utf-8') as f:
+                for box in boxes:
+                    x1, y1, x2, y2 = map(int, box)
+                    f.write(f"{x1},{y1},{x2},{y2}\n")
 
             return {
                 "video_code": first_result.video_code,
@@ -77,6 +84,7 @@ class DetectronHandler:
                 "boxes": boxes.tolist(),
                 "classes": classes.tolist(),
                 "scores": scores.tolist(),
+                "txt_file": txt_save_path  # 텍스트 파일 경로도 반환
             }, 200
 
         except Exception as e:
