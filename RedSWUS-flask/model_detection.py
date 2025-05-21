@@ -46,7 +46,7 @@ def get_parser():
 
     parser.add_argument(
         "--weights",
-        default="./model_0000599.pth", #ex) model_0000599.pth
+        default="./best_model.pth", 
         metavar="pth",
         help="the model used to inference",
     )

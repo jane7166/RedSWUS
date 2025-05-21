@@ -21,7 +21,7 @@ class DetectronHandler:
         self.cfg = get_cfg()
         self.cfg.merge_from_file("./config.yaml")
         self.cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.5
-        self.cfg.MODEL.WEIGHTS = "./pt/model_0000599.pth"
+        self.cfg.MODEL.WEIGHTS = "./pt/best_model.pth"
         self.cfg.MODEL.DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
         self.predictor = DefaultPredictor(self.cfg)
 
