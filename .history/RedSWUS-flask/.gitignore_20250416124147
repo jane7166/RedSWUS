@@ -165,7 +165,7 @@ RedSWUS-flask/redswusFlask/share/
 
 node_modules/
 
-.history
+
 # Ignore model files
 *.pth
 *.pt
