@@ -32,6 +32,10 @@ const VideoUploadScreen: React.FC = () => {
     <MainContainer>
       <NavBar visible={true}>
         <NavItem>RedSWUs</NavItem>
+        <NavItem>Abstract</NavItem>
+        <NavItem>Contact</NavItem>
+        <NavItem>About</NavItem>
+        <NavItem>GitHub</NavItem>
       </NavBar>
       <SnapSection>
         <motion.div initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
@@ -84,7 +88,7 @@ const NavBar = styled.nav<{ visible: boolean }>`
 const NavItem = styled.span`
   margin-right: 20px;
   font-size: 16px;
-  color: #ff4d6d;
+  color:rgb(141, 26, 26);
   font-weight: bold;
   cursor: pointer;
   &:hover {
@@ -136,6 +140,6 @@ const LogCard = styled(Card)`
 
 const SectionTitle = styled.h2`
   font-size: 24px;
-  color: #ffccd5;
+  color: rgb(192, 88, 88);
   margin-bottom: 20px;
 `;

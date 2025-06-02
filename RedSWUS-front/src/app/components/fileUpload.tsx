@@ -123,8 +123,8 @@ const StyledLabel = styled.label`
   gap: 10px;
   padding: 14px 32px;
   background: rgba(255, 255, 255, 0.05);
-  color: #ff6b81;
-  border: 2px solid #ff6b81;
+  color: rgb(192, 88, 88);
+  border: 2px solid rgb(192, 88, 88);
   font-weight: 500;
   border-radius: 40px;
   cursor: pointer;
@@ -151,7 +151,7 @@ export const AnalyzeButton = styled.button`
   font-size: 16px;
   background: rgba(255, 255, 255, 0.05);
   color:rgb(252, 245, 246);
-  border: 2px solid #ff6b81;
+  border: 2px solid rgb(192, 88, 88);
   border-radius: 40px;
   font-weight: 600;
   cursor: pointer;

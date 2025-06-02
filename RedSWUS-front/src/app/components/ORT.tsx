@@ -45,14 +45,14 @@ const Title = styled.h1`
 
 const Description = styled.p`
   font-size: 20px;
-  color: #ffccd5;
+  color:rgb(192, 88, 88);
   margin-top: 10px;
 `;
 
 const ScrollHint = styled.div`
   margin-top: 40px;
   font-size: 16px;
-  color: #ff6b81;
+  color: rgb(141, 26, 26);
   animation: bounce 2s infinite;
   @keyframes bounce {
     0%, 100% { transform: translateY(0); }
