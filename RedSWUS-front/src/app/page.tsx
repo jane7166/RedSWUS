@@ -31,9 +31,9 @@ const VideoUploadScreen: React.FC = () => {
     <MainContainer>
       <NavBar>
         <NavItem>RedSWUs</NavItem>
-        <NavItem>ORT</NavItem>
+        <NavItem>Learn</NavItem>
+        <NavItem>GitHub</NavItem>
         <NavItem>Contact</NavItem>
-        <NavItem>Git</NavItem>
         <NavItem>Help</NavItem>
       </NavBar>
       <SnapSection>
@@ -41,7 +41,7 @@ const VideoUploadScreen: React.FC = () => {
       </SnapSection>
       <SnapSection>
         <Card>
-          <SectionTitle>ORT 체험하기</SectionTitle>
+          <SectionTitle>Using ORT</SectionTitle>
           <UploadControls
             onFileSelect={setSelectedFile}
             selectedFile={selectedFile}
@@ -53,7 +53,7 @@ const VideoUploadScreen: React.FC = () => {
       </SnapSection>
       <SnapSection>
         <LogCard>
-          <SectionTitle>처리 로그</SectionTitle>
+          <SectionTitle>Process Log</SectionTitle>
           <LogViewer log={log} />
         </LogCard>
       </SnapSection>

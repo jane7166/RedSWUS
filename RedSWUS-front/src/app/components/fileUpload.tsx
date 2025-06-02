@@ -29,12 +29,12 @@ export const FileUploader: React.FC<FileUploaderProps> = ({ onFileSelect, setLog
             onChange={handleChange}
           />
           <StyledLabel htmlFor="file-upload">
-            <span>파일 업로드</span>
+            <span>File Select</span>
           </StyledLabel>
         </>
       ) : (
         <AnalyzeButton onClick={onAnalyze} disabled={isProcessing}>
-          {isProcessing ? "분석 중..." : "분석하기"}
+          {isProcessing ? "Analyzing..." : "Analyze"}
         </AnalyzeButton>
       )}
     </Wrapper>
