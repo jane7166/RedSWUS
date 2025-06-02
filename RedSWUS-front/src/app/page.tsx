@@ -4,7 +4,6 @@ import styled from "styled-components";
 import Hero from "./components/ORT";
 import { UploadControls } from "./components/fileUpload"; 
 import LogViewer from "./components/Log";
-import { motion } from "framer-motion";
 
 const VideoUploadScreen: React.FC = () => {
   const [isProcessing, setIsProcessing] = useState(false);
@@ -30,20 +29,17 @@ const VideoUploadScreen: React.FC = () => {
 
   return (
     <MainContainer>
-      <NavBar visible={true}>
+      <NavBar>
         <NavItem>RedSWUs</NavItem>
-        <NavItem>Abstract</NavItem>
+        <NavItem>ORT</NavItem>
         <NavItem>Contact</NavItem>
-        <NavItem>About</NavItem>
-        <NavItem>GitHub</NavItem>
+        <NavItem>Git</NavItem>
+        <NavItem>Help</NavItem>
       </NavBar>
       <SnapSection>
-        <motion.div initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-          <Hero />
-        </motion.div>
+        <Hero />
       </SnapSection>
       <SnapSection>
-        <motion.div initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
         <Card>
           <SectionTitle>ORT 체험하기</SectionTitle>
           <UploadControls
@@ -54,47 +50,18 @@ const VideoUploadScreen: React.FC = () => {
             setLog={setLog}
           />
         </Card>
-        </motion.div>
       </SnapSection>
       <SnapSection>
-        <motion.div initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-          <LogCard>
-            <SectionTitle>처리 로그</SectionTitle>
-            <LogViewer log={log} />
-          </LogCard>
-        </motion.div>
+        <LogCard>
+          <SectionTitle>처리 로그</SectionTitle>
+          <LogViewer log={log} />
+        </LogCard>
       </SnapSection>
     </MainContainer>
   );
 };
 
 export default VideoUploadScreen;
-
-const NavBar = styled.nav<{ visible: boolean }>`
-  width: 100%;
-  padding: 20px 40px;
-  display: ${({ visible }) => (visible ? "flex" : "none")};
-  justify-content: space-between;
-  align-items: center;
-  background: rgba(0, 0, 0, 0.61);
-  box-shadow: 0 5px 30px rgba(106, 29, 29, 0.68);
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 100;
-`;
-
-
-const NavItem = styled.span`
-  margin-right: 20px;
-  font-size: 16px;
-  color:rgb(141, 26, 26);
-  font-weight: bold;
-  cursor: pointer;
-  &:hover {
-    color: rgba(181, 1, 31, 0.64);
-  }
-`;
 
 const MainContainer = styled.div`
   scroll-snap-type: y mandatory;
@@ -113,6 +80,31 @@ const SnapSection = styled.section`
   display: flex;
   justify-content: center;
   align-items: center;
+`;
+
+const NavBar = styled.nav`
+  width: 100%;
+  padding: 20px 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.61);
+  box-shadow: 0 5px 30px rgba(106, 29, 29, 0.68);
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 100;
+`;
+
+const NavItem = styled.span`
+  margin-right: 20px;
+  font-size: 16px;
+  color: #ff4d6d;
+  font-weight: bold;
+  cursor: pointer;
+  &:hover {
+    color: rgba(181, 1, 31, 0.64);
+  }
 `;
 
 const Card = styled.div`
