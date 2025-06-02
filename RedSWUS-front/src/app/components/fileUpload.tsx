@@ -1,6 +1,5 @@
 import React from "react";
 import styled from "styled-components";
-import { FiUpload } from "react-icons/fi";
 
 interface FileUploaderProps {
   onFileSelect: (file: File) => void;
@@ -31,12 +30,11 @@ export const FileUploader: React.FC<FileUploaderProps> = ({ onFileSelect, setLog
           />
           <StyledLabel htmlFor="file-upload">
             <span>파일 업로드</span>
-            <FiUpload size={18} />
           </StyledLabel>
         </>
       ) : (
         <AnalyzeButton onClick={onAnalyze} disabled={isProcessing}>
-          {isProcessing ? "🔄 분석 중..." : "🔍 분석하기"}
+          {isProcessing ? "분석 중..." : "분석하기"}
         </AnalyzeButton>
       )}
     </Wrapper>
