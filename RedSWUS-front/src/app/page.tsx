@@ -1,6 +1,10 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
+import Hero from "./components/ORT";
+import { UploadControls } from "./components/fileUpload"; 
+import LogViewer from "./components/Log";
+import { motion } from "framer-motion";
 
 const VideoUploadScreen: React.FC = () => {
   const [isProcessing, setIsProcessing] = useState(false);
@@ -24,228 +28,114 @@ const VideoUploadScreen: React.FC = () => {
     };
   }, []);
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files?.length) {
-      setSelectedFile(event.target.files[0]);
-      setLog(["File selected. Ready to render."]);
-    }
-  };
-
-  const handleRender = async () => {
-    if (selectedFile) {
-      setIsProcessing(true);
-      setLog((prevLog) => [...prevLog, "Processing started..."]);
-
-      const formData = new FormData();
-      formData.append("file", selectedFile);
-
-      try {
-        const response = await fetch("http://localhost:5001/full_pipeline", {
-          method: "POST",
-          body: formData,
-        });
-
-        const result = await response.json();
-        console.log(result)
-        setIsProcessing(false);
-        setLog((prevLog) => [
-          ...prevLog,
-          "Processing completed.",
-          `Result: ${JSON.stringify(result.str_result)}`,
-        ]);
-      } catch {
-        setIsProcessing(false);
-        setLog((prevLog) => [...prevLog, "Error processing the file."]);
-      }
-    } else {
-      setLog((prevLog) => [
-        ...prevLog,
-        "No file selected. Please select a file to process.",
-      ]);
-    }
-  };
-
   return (
     <MainContainer>
-      <NavBar>
+      <NavBar visible={true}>
         <NavItem>RedSWUs</NavItem>
       </NavBar>
-
-      <Content>
-        <HeroTitle>RedSWUs ORT</HeroTitle>
-        <Subtitle>
-          화상 영상 데이터 속 안경에 반사된 문자를 인식하는 공격모델 ORT입니다.
-        </Subtitle>
-        <InputBox>
-          <InputLabel>Select File</InputLabel>
-          <Input
-            type="file"
-            accept="video/*,image/png,image/jpeg"
-            onChange={handleFileChange}
+      <SnapSection>
+        <motion.div initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+          <Hero />
+        </motion.div>
+      </SnapSection>
+      <SnapSection>
+        <motion.div initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+        <Card>
+          <SectionTitle>ORT 체험하기</SectionTitle>
+          <UploadControls
+            onFileSelect={setSelectedFile}
+            selectedFile={selectedFile}
+            isProcessing={isProcessing}
+            setIsProcessing={setIsProcessing}
+            setLog={setLog}
           />
-        </InputBox>
-        <UploadButton
-          onClick={handleRender}
-          disabled={isProcessing || !selectedFile}
-        >
-          {isProcessing ? "Processing..." : "Analyze"}
-        </UploadButton>
-      </Content>
-
-      <LogContainer>
-        <LogTitle>Processing Log</LogTitle>
-        <LogContent>
-          {log.map((entry, index) => (
-            <LogEntry key={index}>{entry}</LogEntry>
-          ))}
-        </LogContent>
-      </LogContainer>
+        </Card>
+        </motion.div>
+      </SnapSection>
+      <SnapSection>
+        <motion.div initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+          <LogCard>
+            <SectionTitle>처리 로그</SectionTitle>
+            <LogViewer log={log} />
+          </LogCard>
+        </motion.div>
+      </SnapSection>
     </MainContainer>
   );
 };
 
 export default VideoUploadScreen;
 
-// Styled components
-const MainContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  background: linear-gradient(180deg, #eaeaea, #d9d9d9);
-  color: #333;
-  min-height: 100vh;
-  padding: 40px 20px;
-  font-family: 'Poppins', sans-serif;
-  position: relative;
-  overflow: hidden;
-`;
-
-const NavBar = styled.nav`
+const NavBar = styled.nav<{ visible: boolean }>`
   width: 100%;
   padding: 20px 40px;
-  display: flex;
+  display: ${({ visible }) => (visible ? "flex" : "none")};
   justify-content: space-between;
   align-items: center;
-  background: #f2f2f2;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  background: rgba(0, 0, 0, 0.61);
+  box-shadow: 0 5px 30px rgba(106, 29, 29, 0.68);
   position: fixed;
   top: 0;
   left: 0;
   z-index: 100;
 `;
 
+
 const NavItem = styled.span`
   margin-right: 20px;
   font-size: 16px;
-  color: #333;
+  color: #ff4d6d;
   font-weight: bold;
   cursor: pointer;
   &:hover {
-    color: #de4960;
+    color: rgba(181, 1, 31, 0.64);
   }
 `;
 
-const Content = styled.div`
-  width: 100%;
-  max-width: 1000px;
-  padding: 5vw;
-  background: #ffffff;
-  border-radius: 15px;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-  text-align: center;
-  margin-top: 120px;
-  transition: all 0.3s ease-in-out;
-  flex-grow: 1;
+const MainContainer = styled.div`
+  scroll-snap-type: y mandatory;
+  overflow-y: scroll;
+  height: 100vh;
+  scroll-behavior: smooth;
+  background: linear-gradient(to bottom, #0a0203, #1a0b0e);
+  color: #fff;
+  font-family: "Poppins", sans-serif;
+`;
 
-  @media (min-width: 1200px) {
-    padding: 40px;
+const SnapSection = styled.section`
+  scroll-snap-align: start;
+  min-height: 100vh;
+  width: 100vw;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+`;
+
+const Card = styled.div`
+  background: rgba(80, 0, 30, 0.3);
+  backdrop-filter: blur(20px);
+  padding: 40px;
+  border-radius: 20px;
+  width: 80vw;
+  max-width: 1200px;
+  box-shadow: 0 12px 24px rgba(255, 0, 70, 0.15);
+`;
+
+const LogCard = styled(Card)`
+  max-height: 60vh;
+  overflow-y: auto;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: #ff4d6d;
+    border-radius: 3px;
   }
 `;
 
-const HeroTitle = styled.h2`
-  font-size: 32px;
-  font-weight: bold;
+const SectionTitle = styled.h2`
+  font-size: 24px;
+  color: #ffccd5;
   margin-bottom: 20px;
-  color: #333;
-`;
-
-const Subtitle = styled.p`
-  font-size: 18px;
-  margin-bottom: 40px;
-  color: #555;
-`;
-
-const InputBox = styled.div`
-  margin-bottom: 24px;
-`;
-
-const InputLabel = styled.label`
-  font-size: 16px;
-  margin-bottom: 8px;
-  display: block;
-  color: #333;
-`;
-
-const Input = styled.input`
-  border: 1px solid #ccc;
-  font-size: 16px;
-  padding: 12px;
-  width: 100%;
-  background: #ffffff;
-  color: #333;
-  border-radius: 8px;
-  outline: none;
-  &:focus {
-    border-color: #ff6347;
-  }
-`;
-
-const UploadButton = styled.button`
-  padding: 14px 40px;
-  font-size: 17px;
-  background-color: #e07b8b;
-  color: #ffffff;
-  border: none;
-  font-weight: bold;
-  border-radius: 25px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  &:hover {
-    background-color: #de4960;
-  }
-  &:disabled {
-    background-color: #e07b8b;
-    cursor: not-allowed;
-  }
-`;
-
-const LogContainer = styled.div`
-  width: 100%;
-  max-width: 1000px;
-  margin-top: 40px;
-  padding: 5vw;
-  background: #ffffff;
-  border-radius: 15px;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-  transition: all 0.3s ease-in-out;
-  flex-grow: 1;
-
-  @media (min-width: 1200px) {
-    padding: 40px;
-  }
-`;
-
-const LogTitle = styled.h3`
-  font-size: 20px;
-  color: #333;
-  margin-bottom: 15px;
-`;
-
-const LogContent = styled.div`
-  font-size: 16px;
-  color: #333;
-`;
-
-const LogEntry = styled.div`
-  margin-bottom: 10px;
 `;
