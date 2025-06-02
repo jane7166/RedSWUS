@@ -2,18 +2,11 @@ import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 
 const ORT = () => {
-  const [showNav, setShowNav] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
 
   useEffect(() => {
     const handleScroll = () => {
       const currentScroll = window.scrollY;
-
-      if (currentScroll > lastScrollY && currentScroll > 50) {
-        setShowNav(false); // 아래로 스크롤 시 숨김
-      } else {
-        setShowNav(true); // 위로 스크롤 시 표시
-      }
 
       setLastScrollY(currentScroll);
     };
