@@ -173,3 +173,7 @@ RedSWUS-flask/TextFuseNet
 # Ignore model files
 *.pth
 *.pt
+
+
+# history folder
+.history
