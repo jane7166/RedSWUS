@@ -9,9 +9,9 @@ from models import db, FirstPreprocessingResult, YoloResult
 def preprocess_image(image):
     # 1단계: Gray Scale 변화, CLAHE, 조명 보정
     gray_1 = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    clahe_1 = cv2.createCLAHE(clipLimit=4.0, tileGridSize=(8, 8))
+    clahe_1 = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
     clahe_img_1 = clahe_1.apply(gray_1)
-    gaussian_blur_1 = cv2.GaussianBlur(clahe_img_1, (0, 0), sigmaX=15, sigmaY=15)
+    gaussian_blur_1 = cv2.GaussianBlur(clahe_img_1, (0, 0), sigmaX=30, sigmaY=30)
     light_corrected_1 = cv2.addWeighted(clahe_img_1, 1.5, gaussian_blur_1, -0.5, 0)
 
     # 2단계: 가우시안 블러 적용
@@ -19,7 +19,7 @@ def preprocess_image(image):
 
     # 3단계: Gray Scale 변화, CLAHE, 조명 보정, 가우시안 블러
     gray_2 = cv2.cvtColor(cv2.merge([blurred_1] * 3), cv2.COLOR_BGR2GRAY)
-    clahe_2 = cv2.createCLAHE(clipLimit=4.0, tileGridSize=(3, 3))
+    clahe_2 = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
     clahe_img_2 = clahe_2.apply(gray_2)
     gaussian_blur_2 = cv2.GaussianBlur(clahe_img_2, (3, 3), 0)
     sharpened = cv2.addWeighted(clahe_img_2, 1.5, gaussian_blur_2, -0.5, 0)
